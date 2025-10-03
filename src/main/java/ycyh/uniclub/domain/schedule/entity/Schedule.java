@@ -39,3 +39,4 @@ public class Schedule {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 }
+

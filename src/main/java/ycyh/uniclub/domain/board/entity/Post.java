@@ -58,3 +58,4 @@ public class Post {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
+

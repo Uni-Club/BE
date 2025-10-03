@@ -20,7 +20,7 @@ public class UserService {
     
     @Transactional
     public UserResponseDto signup(UserSignupDto dto) {
-        // 이메일 중복 체크
+        // 이메일 중복 체크 기능 추가해야혀
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new CustomException("이미 존재하는 이메일입니다");
         }
@@ -88,3 +88,4 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
     }
 }
+

@@ -15,3 +15,4 @@ public class GroupSearchDto {
     private String category;
     private String tags;
 }
+

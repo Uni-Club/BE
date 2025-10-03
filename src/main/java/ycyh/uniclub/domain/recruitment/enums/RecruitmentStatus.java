@@ -16,3 +16,4 @@ public enum RecruitmentStatus {
         return value;
     }
 }
+

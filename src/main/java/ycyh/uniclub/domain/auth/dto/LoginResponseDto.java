@@ -14,3 +14,4 @@ public class LoginResponseDto {
     private String token;
     private UserResponseDto user;
 }
+

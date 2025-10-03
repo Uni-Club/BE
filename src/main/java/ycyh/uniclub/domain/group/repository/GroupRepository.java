@@ -19,3 +19,4 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
            "(:schoolId IS NULL OR g.school.schoolId = :schoolId)")
     List<Group> searchGroups(@Param("keyword") String keyword, @Param("schoolId") Long schoolId);
 }
+

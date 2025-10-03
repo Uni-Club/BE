@@ -14,3 +14,4 @@ public enum PostVisibility {
         return value;
     }
 }
+

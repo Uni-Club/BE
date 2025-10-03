@@ -25,3 +25,4 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                                         @Param("category") String category,
                                         @Param("status") RecruitmentStatus status);
 }
+

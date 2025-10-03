@@ -29,3 +29,4 @@ public class SchoolController {
         return ResponseEntity.ok(schoolService.getSchoolById(schoolId));
     }
 }
+

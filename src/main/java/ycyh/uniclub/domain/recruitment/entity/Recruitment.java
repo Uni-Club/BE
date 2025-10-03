@@ -74,3 +74,4 @@ public class Recruitment {
     @Builder.Default
     private List<Application> applications = new ArrayList<>();
 }
+

@@ -61,3 +61,4 @@ public class Group {
     @Builder.Default
     private List<Schedule> schedules = new ArrayList<>();
 }
+

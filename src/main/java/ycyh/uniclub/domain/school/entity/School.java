@@ -48,3 +48,4 @@ public class School {
     @Builder.Default
     private List<Group> groups = new ArrayList<>();
 }
+

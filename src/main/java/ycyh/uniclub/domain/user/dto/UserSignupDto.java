@@ -28,3 +28,4 @@ public class UserSignupDto {
     private String studentId;
     private Long schoolId;
 }
+

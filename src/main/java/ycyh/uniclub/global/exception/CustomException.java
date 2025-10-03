@@ -11,3 +11,4 @@ public class CustomException extends RuntimeException {
         this.message = message;
     }
 }
+
