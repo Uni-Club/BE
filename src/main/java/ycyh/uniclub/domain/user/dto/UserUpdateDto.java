@@ -15,3 +15,4 @@ public class UserUpdateDto {
     private String studentId;
     private Long schoolId;
 }
+

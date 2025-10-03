@@ -46,3 +46,4 @@ public class GroupMember {
     @Builder.Default
     private LocalDateTime joinedAt = LocalDateTime.now();
 }
+

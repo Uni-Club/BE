@@ -50,3 +50,4 @@ public class Board {
     @Builder.Default
     private List<Post> posts = new ArrayList<>();
 }
+

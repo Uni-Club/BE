@@ -61,3 +61,4 @@ public class Application {
     @Column(name = "decided_at")
     private LocalDateTime decidedAt;
 }
+

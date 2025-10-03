@@ -19,7 +19,8 @@ public class UserController {
     
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(UserResponseDto.from(user));
+        // 서비스 계층에서 조회하여 지연 로딩 엔티티 접근 시 트랜잭션 내에서 DTO 매핑
+        return ResponseEntity.ok(userService.getUserInfo(user.getUserId()));
     }
     
     @PutMapping("/me")
