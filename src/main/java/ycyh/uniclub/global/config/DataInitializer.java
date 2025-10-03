@@ -36,15 +36,15 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // 학교 데이터 초기화
         School university = schoolRepository.save(School.builder()
-                .schoolName("대학교")
+                .schoolName("인하대학교")
                 .campusName("메인캠퍼스")
-                .region("서울")
-                .domain("university.ac.kr")
+                .region("인천")
+                .domain("inha.ac.kr")
                 .build());
         
         // 사용자 데이터 초기화
         User user1 = userRepository.save(User.builder()
-                .email("test@university.ac.kr")
+                .email("test@inha.ac.kr")
                 .password(passwordEncoder.encode("password123"))
                 .name("김민수")
                 .phone("010-1234-5678")
@@ -53,7 +53,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
         
         User user2 = userRepository.save(User.builder()
-                .email("admin@university.ac.kr")
+                .email("admin@inha.ac.kr")
                 .password(passwordEncoder.encode("password123"))
                 .name("이수진")
                 .phone("010-2345-6789")
@@ -62,7 +62,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
         
         User user3 = userRepository.save(User.builder()
-                .email("student@university.ac.kr")
+                .email("student@inha.ac.kr")
                 .password(passwordEncoder.encode("password123"))
                 .name("박지훈")
                 .phone("010-3456-7890")
