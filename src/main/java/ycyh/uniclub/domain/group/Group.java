@@ -60,6 +60,10 @@ public class Group {
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Schedule> schedules = new ArrayList<>();
+
+    @Column(name = "is_union")
+    @Builder.Default
+    private Boolean isUnion = false;
 }
 
 

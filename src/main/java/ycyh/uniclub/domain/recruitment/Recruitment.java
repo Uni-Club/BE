@@ -60,6 +60,10 @@ public class Recruitment {
     
     @Builder.Default
     private Integer views = 0;
+
+    @Column(name = "is_union")
+    @Builder.Default
+    private Boolean isUnion = false;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)

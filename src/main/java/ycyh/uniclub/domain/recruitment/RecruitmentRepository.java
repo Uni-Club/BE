@@ -15,7 +15,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
     
     @Query("SELECT r FROM Recruitment r WHERE " +
            "(:keyword IS NULL OR r.title LIKE %:keyword% OR r.content LIKE %:keyword%) AND " +
-           "(:schoolId IS NULL OR r.school.schoolId = :schoolId) AND " +
+           "(:schoolId IS NULL OR r.school.schoolId = :schoolId OR r.isUnion = true) AND " +
            "(:category IS NULL OR r.category = :category) AND " +
            "r.status = :status")
     List<Recruitment> searchRecruitments(@Param("keyword") String keyword, 

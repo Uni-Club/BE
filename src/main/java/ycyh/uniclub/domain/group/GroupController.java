@@ -1,6 +1,8 @@
 package ycyh.uniclub.domain.group;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import ycyh.uniclub.domain.user.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,14 @@ public class GroupController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long schoolId,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String tags) {
+            @RequestParam(required = false) String tags,
+            Authentication authentication) {
+        // 기본 정책: schoolId 미지정 시 로그인 사용자의 소속 학교 자동 적용
+        if (schoolId == null && authentication != null && authentication.getPrincipal() instanceof User user) {
+            if (user.getSchool() != null) {
+                schoolId = user.getSchool().getSchoolId();
+            }
+        }
         
         GroupSearchDto searchDto = GroupSearchDto.builder()
                 .keyword(keyword)
