@@ -42,7 +42,7 @@ public class Recruitment {
     @Column(length = 50)
     private String category;
     
-    @Column(columnDefinition = "JSON")
+    @Column(columnDefinition = "TEXT")
     private String tags;
     
     @Column(name = "apply_start")

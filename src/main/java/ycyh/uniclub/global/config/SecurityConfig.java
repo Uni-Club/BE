@@ -37,8 +37,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/schools/**", "/api/groups/search", 
-                                       "/api/groups/{groupId}", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/schools/**", "/api/groups/search",
+                                       "/api/groups/*", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
