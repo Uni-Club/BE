@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.domain.application.Application;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -76,6 +77,9 @@ public class Recruitment {
     @OneToMany(mappedBy = "recruitment", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Application> applications = new ArrayList<>();
+    
+    @Column(name = "custom_fields", columnDefinition = "TEXT")
+    private String customFields; // JSON string for field definitions
 }
 
 

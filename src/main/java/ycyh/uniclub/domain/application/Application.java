@@ -1,18 +1,18 @@
-package ycyh.uniclub.domain.recruitment;
+package ycyh.uniclub.domain.application;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.user.User;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "application",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"recruitment_id", "applicant_id"}))
+@Table(name = "application")
 @Data
 @Builder
 @NoArgsConstructor
@@ -43,8 +43,8 @@ public class Application {
     @Column(columnDefinition = "TEXT")
     private String motivation;
     
-    @Column(columnDefinition = "JSON")
-    private String answers;
+    @Column(columnDefinition = "TEXT")
+    private String answers; // JSON string for custom field answers
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id")
@@ -60,5 +60,3 @@ public class Application {
     @Column(name = "decided_at")
     private LocalDateTime decidedAt;
 }
-
-

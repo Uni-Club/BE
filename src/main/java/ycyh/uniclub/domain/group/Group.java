@@ -64,6 +64,11 @@ public class Group {
     @Column(name = "is_union")
     @Builder.Default
     private Boolean isUnion = false;
+    
+    // Helper method to get leader ID
+    public Long getLeaderId() {
+        return leader != null ? leader.getUserId() : null;
+    }
 }
 
 

@@ -10,7 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.group.GroupMember;
-import ycyh.uniclub.domain.recruitment.Application;
+import ycyh.uniclub.domain.application.Application;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
