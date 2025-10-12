@@ -119,6 +119,33 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional
+    public void cancel(Long id, User user) {
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new CustomException("지원서를 찾을 수 없습니다"));
+        
+        // 본인 지원서인지 확인
+        if (!application.getApplicant().getUserId().equals(user.getUserId())) {
+            throw new CustomException("본인의 지원서만 취소할 수 있습니다");
+        }
+        
+        // 이미 처리된 지원서는 취소 불가
+        if (application.getStatus() != ApplicationStatus.SUBMITTED && 
+            application.getStatus() != ApplicationStatus.UNDER_REVIEW) {
+            throw new CustomException("이미 처리된 지원서는 취소할 수 없습니다");
+        }
+        
+        application.setStatus(ApplicationStatus.CANCELLED);
+        application.setDecidedAt(LocalDateTime.now());
+        applicationRepository.save(application);
+    }
+    
+    public ApplicationResponseDto getMyApplicationStatus(Long recruitmentId, User user) {
+        return applicationRepository.findByRecruitmentRecruitmentIdAndApplicantUserId(recruitmentId, user.getUserId())
+                .map(ApplicationResponseDto::from)
+                .orElse(null);
+    }
+    
     private String convertToJson(Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);

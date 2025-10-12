@@ -51,4 +51,19 @@ public class ApplicationController {
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(applicationService.getMyApplications(user));
     }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancel(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        applicationService.cancel(id, user);
+        return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/recruitment/{recruitmentId}/status")
+    public ResponseEntity<ApplicationResponseDto> getMyApplicationStatus(
+            @PathVariable Long recruitmentId,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(applicationService.getMyApplicationStatus(recruitmentId, user));
+    }
 }
