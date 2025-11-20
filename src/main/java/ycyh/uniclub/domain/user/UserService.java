@@ -14,7 +14,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
     private final PasswordEncoder passwordEncoder;
-    
+
+    // 회원가입
     @Transactional
     public UserResponseDto signup(UserSignupDto dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -37,18 +38,21 @@ public class UserService {
         User savedUser = userRepository.save(user);
         return UserResponseDto.from(savedUser);
     }
-    
+
+    // 이메일로 사용자 조회
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다"));
     }
-    
+
+    // 사용자 정보 조회
     public UserResponseDto getUserInfo(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다"));
         return UserResponseDto.from(user);
     }
-    
+
+    // 사용자 정보 수정
     @Transactional
     public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
         User user = userRepository.findById(userId)
@@ -70,7 +74,8 @@ public class UserService {
         
         return UserResponseDto.from(user);
     }
-    
+
+    // 비밀번호 변경
     @Transactional
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)

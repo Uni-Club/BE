@@ -21,6 +21,7 @@ public class GroupController {
     private final RecruitmentService recruitmentService;
     private final ApplicationService applicationService;
     
+    // 동아리 검색 API
     @GetMapping("/search")
     public ResponseEntity<List<GroupResponseDto>> searchGroups(
             @RequestParam(required = false) String keyword,
@@ -44,17 +45,20 @@ public class GroupController {
         
         return ResponseEntity.ok(groupService.searchGroups(searchDto));
     }
-    
+
+    // 동아리 상세 조회 API
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupResponseDto> getGroupDetail(@PathVariable Long groupId) {
         return ResponseEntity.ok(groupService.getGroupDetail(groupId));
     }
-    
+
+    // 학교별 동아리 목록 조회 API
     @GetMapping("/school/{schoolId}")
     public ResponseEntity<List<GroupResponseDto>> getGroupsBySchool(@PathVariable Long schoolId) {
         return ResponseEntity.ok(groupService.getGroupsBySchool(schoolId));
     }
-    
+
+    // 동아리 삭제 API
     @DeleteMapping("/{groupId}")
     public ResponseEntity<Void> deleteGroup(
             @PathVariable Long groupId,
@@ -62,7 +66,8 @@ public class GroupController {
         groupService.deleteGroup(groupId, user);
         return ResponseEntity.noContent().build();
     }
-    
+
+    // 동아리 탈퇴 신청 API
     @PostMapping("/{groupId}/leave-request")
     public ResponseEntity<Void> requestLeave(
             @PathVariable Long groupId,
@@ -71,21 +76,24 @@ public class GroupController {
         groupService.requestLeave(groupId, user, dto.getReason());
         return ResponseEntity.ok().build();
     }
-    
+
+    // 동아리 탈퇴 신청 목록 조회 API
     @GetMapping("/{groupId}/leave-requests")
     public ResponseEntity<List<LeaveRequestDto>> getLeaveRequests(
             @PathVariable Long groupId,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(groupService.getLeaveRequests(groupId, user));
     }
-    
+
+    // 내 탈퇴 신청 조회 API
     @GetMapping("/{groupId}/my-leave-request")
     public ResponseEntity<LeaveRequestDto> getMyLeaveRequest(
             @PathVariable Long groupId,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(groupService.getMyLeaveRequest(groupId, user));
     }
-    
+
+    // 탈퇴 신청 승인 API
     @PutMapping("/leave-requests/{requestId}/approve")
     public ResponseEntity<Void> approveLeaveRequest(
             @PathVariable Long requestId,
@@ -94,7 +102,8 @@ public class GroupController {
         groupService.approveLeaveRequest(requestId, user, dto.getReviewNote());
         return ResponseEntity.ok().build();
     }
-    
+
+    // 탈퇴 신청 거절 API
     @PutMapping("/leave-requests/{requestId}/reject")
     public ResponseEntity<Void> rejectLeaveRequest(
             @PathVariable Long requestId,
@@ -103,7 +112,8 @@ public class GroupController {
         groupService.rejectLeaveRequest(requestId, user, dto.getReviewNote());
         return ResponseEntity.ok().build();
     }
-    
+
+    // 동아리 멤버 삭제 API
     @DeleteMapping("/{groupId}/members/{userId}")
     public ResponseEntity<Void> removeMember(
             @PathVariable Long groupId,
@@ -113,11 +123,13 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
+    // 동아리별 모집공고 목록 조회 API
     @GetMapping("/{groupId}/recruitments")
     public ResponseEntity<List<RecruitmentResponseDto>> getRecruitmentsByGroup(@PathVariable Long groupId) {
         return ResponseEntity.ok(recruitmentService.getByGroup(groupId));
     }
 
+    // 동아리별 지원서 목록 조회 API
     @GetMapping("/{groupId}/applications")
     public ResponseEntity<List<ApplicationResponseDto>> getApplicationsByGroup(
             @PathVariable Long groupId,

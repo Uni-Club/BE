@@ -19,11 +19,13 @@ public class UserController {
     private final UserService userService;
     private final GroupMemberRepository groupMemberRepository;
 
+    // 내 정보 조회 API
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(userService.getUserInfo(user.getUserId()));
     }
 
+    // 내 정보 수정 API
     @PutMapping("/me")
     public ResponseEntity<UserResponseDto> updateMyInfo(
             @AuthenticationPrincipal User user,
@@ -31,6 +33,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(user.getUserId(), dto));
     }
 
+    // 비밀번호 변경 API
     @PutMapping("/me/password")
     public ResponseEntity<Map<String, String>> changePassword(
             @AuthenticationPrincipal User user,
@@ -43,6 +46,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다"));
     }
 
+    // 내 동아리 목록 조회 API
     @GetMapping("/me/groups")
     public ResponseEntity<List<MyGroupDto>> getMyGroups(@AuthenticationPrincipal User user) {
         List<GroupMember> memberships = groupMemberRepository.findByUserUserId(user.getUserId());

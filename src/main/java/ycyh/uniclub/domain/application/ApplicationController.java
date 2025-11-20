@@ -17,6 +17,7 @@ import java.util.List;
 public class ApplicationController {
     private final ApplicationService applicationService;
     
+    // 지원서 제출 API
     @PostMapping
     public ResponseEntity<ApplicationResponseDto> submit(
             @RequestBody ApplicationSubmitDto dto,
@@ -24,13 +25,15 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.submit(dto, user));
     }
 
+    // 지원서 상세 조회 API
     @GetMapping("/{id}")
     public ResponseEntity<ApplicationResponseDto> getById(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(applicationService.getById(id, user));
     }
-    
+
+    // 지원서 심사 API
     @PutMapping("/{id}/status")
     public ResponseEntity<ApplicationResponseDto> review(
             @PathVariable Long id,
@@ -38,13 +41,15 @@ public class ApplicationController {
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(applicationService.review(id, dto, user));
     }
-    
+
+    // 내 지원 내역 조회 API
     @GetMapping("/my")
     public ResponseEntity<List<ApplicationResponseDto>> getMyApplications(
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(applicationService.getMyApplications(user));
     }
-    
+
+    // 지원서 취소 API
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancel(
             @PathVariable Long id,
@@ -52,7 +57,8 @@ public class ApplicationController {
         applicationService.cancel(id, user);
         return ResponseEntity.ok().build();
     }
-    
+
+    // 모집공고별 내 지원 상태 조회 API
     @GetMapping("/recruitment/{recruitmentId}/status")
     public ResponseEntity<ApplicationResponseDto> getMyApplicationStatus(
             @PathVariable Long recruitmentId,
