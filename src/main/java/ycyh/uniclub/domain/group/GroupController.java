@@ -3,6 +3,10 @@ package ycyh.uniclub.domain.group;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import ycyh.uniclub.domain.application.ApplicationService;
+import ycyh.uniclub.domain.application.dto.ApplicationResponseDto;
+import ycyh.uniclub.domain.recruitment.RecruitmentResponseDto;
+import ycyh.uniclub.domain.recruitment.RecruitmentService;
 import ycyh.uniclub.domain.user.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GroupController {
     private final GroupService groupService;
+    private final RecruitmentService recruitmentService;
+    private final ApplicationService applicationService;
     
     @GetMapping("/search")
     public ResponseEntity<List<GroupResponseDto>> searchGroups(
@@ -105,6 +111,18 @@ public class GroupController {
             @AuthenticationPrincipal User user) {
         groupService.removeMember(groupId, userId, user);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{groupId}/recruitments")
+    public ResponseEntity<List<RecruitmentResponseDto>> getRecruitmentsByGroup(@PathVariable Long groupId) {
+        return ResponseEntity.ok(recruitmentService.getByGroup(groupId));
+    }
+
+    @GetMapping("/{groupId}/applications")
+    public ResponseEntity<List<ApplicationResponseDto>> getApplicationsByGroup(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(applicationService.getByGroup(groupId, user));
     }
 }
 

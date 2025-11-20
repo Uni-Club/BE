@@ -23,14 +23,7 @@ public class ApplicationController {
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(applicationService.submit(dto, user));
     }
-    
-    @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<ApplicationResponseDto>> getByGroup(
-            @PathVariable Long groupId,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(applicationService.getByGroup(groupId, user));
-    }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<ApplicationResponseDto> getById(
             @PathVariable Long id,

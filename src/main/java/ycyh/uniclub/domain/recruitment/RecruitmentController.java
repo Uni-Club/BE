@@ -16,11 +16,6 @@ import java.util.List;
 public class RecruitmentController {
     private final RecruitmentService recruitmentService;
 
-    @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<RecruitmentResponseDto>> getByGroup(@PathVariable Long groupId) {
-        return ResponseEntity.ok(recruitmentService.getByGroup(groupId));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<RecruitmentResponseDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(recruitmentService.getById(id));
