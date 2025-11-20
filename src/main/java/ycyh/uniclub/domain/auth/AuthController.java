@@ -21,12 +21,14 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     
+    // 회원가입 API
     @PostMapping("/signup")
     public ResponseEntity<UserResponseDto> signup(@Valid @RequestBody UserSignupDto dto) {
         UserResponseDto userResponse = userService.signup(dto);
         return ResponseEntity.ok(userResponse);
     }
-    
+
+    // 로그인 API
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginDto dto) {
         try {

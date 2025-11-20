@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class MeController {
     private final GroupMemberRepository groupMemberRepository;
 
+    // 내 동아리 목록 조회 API
     @GetMapping("/groups")
     public ResponseEntity<List<MyGroupDto>> myGroups(@AuthenticationPrincipal User user) {
         List<GroupMember> memberships = groupMemberRepository.findByUserUserId(user.getUserId());
