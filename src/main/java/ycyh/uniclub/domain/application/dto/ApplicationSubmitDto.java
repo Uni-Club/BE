@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.application;
+package ycyh.uniclub.domain.application.dto;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,9 +1,11 @@
-package ycyh.uniclub.domain.application;
+package ycyh.uniclub.domain.application.dto;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import lombok.Getter;
+import ycyh.uniclub.domain.application.Application;
+import ycyh.uniclub.domain.application.ApplicationStatus;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

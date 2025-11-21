@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ycyh.uniclub.domain.application.ApplicationService;
-import ycyh.uniclub.domain.application.ApplicationResponseDto;
+import ycyh.uniclub.domain.application.dto.ApplicationResponseDto;
 import ycyh.uniclub.domain.recruitment.RecruitmentResponseDto;
 import ycyh.uniclub.domain.recruitment.RecruitmentService;
 import ycyh.uniclub.domain.user.User;

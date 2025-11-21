@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.group.GroupRepository;
 import ycyh.uniclub.domain.group.GroupMemberRepository;
+import ycyh.uniclub.domain.recruitment.dto.RecruitmentCreateDto;
+import ycyh.uniclub.domain.recruitment.dto.RecruitmentUpdateDto;
 import ycyh.uniclub.domain.user.User;
 import ycyh.uniclub.global.exception.CustomException;
 
