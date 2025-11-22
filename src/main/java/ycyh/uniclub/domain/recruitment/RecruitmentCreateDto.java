@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.recruitment.dto;
+package ycyh.uniclub.domain.recruitment;
 
 import lombok.Getter;
 import lombok.Setter;

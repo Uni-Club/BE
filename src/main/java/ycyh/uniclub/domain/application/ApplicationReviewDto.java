@@ -1,8 +1,7 @@
-package ycyh.uniclub.domain.application.dto;
+package ycyh.uniclub.domain.application;
 
 import lombok.Getter;
 import lombok.Setter;
-import ycyh.uniclub.domain.application.ApplicationStatus;
 
 @Getter
 @Setter
