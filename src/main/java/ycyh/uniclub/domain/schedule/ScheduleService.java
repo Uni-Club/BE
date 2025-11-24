@@ -24,7 +24,7 @@ public class ScheduleService {
     private final UserRepository userRepository;
 
     // 일정 생성
-    public ScheduleResponseDto createSchedule(CreateScheduleRequestDto req) {
+    public ScheduleResponseDto createSchedule(ScheduleCreateDto req) {
 
         Group group = groupRepository.findById(req.getGroupId())
                 .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + req.getGroupId()));

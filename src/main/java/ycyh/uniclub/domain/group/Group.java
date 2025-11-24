@@ -1,10 +1,7 @@
 package ycyh.uniclub.domain.group;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.board.Board;
@@ -16,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "groups")
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

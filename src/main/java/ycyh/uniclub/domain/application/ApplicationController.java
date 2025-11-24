@@ -4,9 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import ycyh.uniclub.domain.application.dto.ApplicationSubmitDto;
-import ycyh.uniclub.domain.application.dto.ApplicationResponseDto;
-import ycyh.uniclub.domain.application.dto.ApplicationReviewDto;
 import ycyh.uniclub.domain.user.User;
 
 import java.util.List;
