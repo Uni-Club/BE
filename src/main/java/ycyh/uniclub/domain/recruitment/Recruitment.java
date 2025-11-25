@@ -77,6 +77,43 @@ public class Recruitment {
     
     @Column(name = "custom_fields", columnDefinition = "TEXT")
     private String customFields; // JSON string for field definitions
+
+    // Setter methods for update
+    public void setStatus(RecruitmentStatus status) {
+        this.status = status;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public void setApplyStart(LocalDateTime applyStart) {
+        this.applyStart = applyStart;
+    }
+
+    public void setApplyEnd(LocalDateTime applyEnd) {
+        this.applyEnd = applyEnd;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
+
+    public void setCustomFields(String customFields) {
+        this.customFields = customFields;
+    }
 }
 
 

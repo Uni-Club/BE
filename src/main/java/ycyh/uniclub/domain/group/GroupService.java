@@ -3,7 +3,10 @@ package ycyh.uniclub.domain.group;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ycyh.uniclub.domain.school.School;
+import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.domain.user.UserRepository;
 import ycyh.uniclub.global.exception.CustomException;
 
 import java.util.List;
@@ -16,6 +19,8 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final SchoolRepository schoolRepository;
+    private final UserRepository userRepository;
     
     public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
         List<Group> groups = groupRepository.searchGroups(
@@ -177,7 +182,136 @@ public class GroupService {
                 .map(LeaveRequestDto::from)
                 .orElse(null);
     }
-    
+
+    // 동아리 생성
+    @Transactional
+    public GroupResponseDto createGroup(GroupCreateDto dto, User user) {
+        // 학교 조회 (선택사항)
+        School school = null;
+        if (dto.getSchoolId() != null) {
+            school = schoolRepository.findById(dto.getSchoolId())
+                    .orElseThrow(() -> new CustomException("학교를 찾을 수 없습니다"));
+        }
+
+        // 그룹 생성
+        Group group = Group.builder()
+                .groupName(dto.getGroupName())
+                .description(dto.getDescription())
+                .leader(user)
+                .school(school)
+                .isUnion(dto.getIsUnion() != null ? dto.getIsUnion() : false)
+                .build();
+
+        Group savedGroup = groupRepository.save(group);
+
+        // 생성자를 회장으로 자동 추가
+        GroupMember leaderMember = GroupMember.builder()
+                .user(user)
+                .group(savedGroup)
+                .role("회장")
+                .status("active")
+                .build();
+
+        groupMemberRepository.save(leaderMember);
+
+        // 새로 생성된 그룹은 lazy 컬렉션이 초기화되지 않으므로 직접 빌드
+        return GroupResponseDto.builder()
+                .groupId(savedGroup.getGroupId())
+                .groupName(savedGroup.getGroupName())
+                .description(savedGroup.getDescription())
+                .leaderId(user.getUserId())
+                .leaderName(user.getName())
+                .schoolId(school != null ? school.getSchoolId() : null)
+                .schoolName(school != null ? school.getSchoolName() : null)
+                .memberCount(1) // 생성자 1명
+                .activeRecruitmentCount(0)
+                .createdAt(savedGroup.getCreatedAt())
+                .build();
+    }
+
+    // 동아리 수정
+    @Transactional
+    public GroupResponseDto updateGroup(Long groupId, GroupUpdateDto dto, User user) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
+
+        // 권한 체크: 관리자만 수정 가능
+        if (!isGroupAdmin(user, group)) {
+            throw new CustomException("동아리를 수정할 권한이 없습니다");
+        }
+
+        // 그룹 정보 업데이트를 위해 새 객체 생성 (엔티티에 setter가 없으므로)
+        Group updatedGroup = Group.builder()
+                .groupId(group.getGroupId())
+                .groupName(dto.getGroupName() != null ? dto.getGroupName() : group.getGroupName())
+                .description(dto.getDescription() != null ? dto.getDescription() : group.getDescription())
+                .leader(group.getLeader())
+                .school(group.getSchool())
+                .createdAt(group.getCreatedAt())
+                .isUnion(group.getIsUnion())
+                .build();
+
+        Group savedGroup = groupRepository.save(updatedGroup);
+
+        // 업데이트 후 원래 그룹 정보를 기반으로 응답 빌드
+        int memberCount = groupMemberRepository.findByGroupGroupId(groupId).size();
+        return GroupResponseDto.builder()
+                .groupId(savedGroup.getGroupId())
+                .groupName(savedGroup.getGroupName())
+                .description(savedGroup.getDescription())
+                .leaderId(savedGroup.getLeader() != null ? savedGroup.getLeader().getUserId() : null)
+                .leaderName(savedGroup.getLeader() != null ? savedGroup.getLeader().getName() : null)
+                .schoolId(savedGroup.getSchool() != null ? savedGroup.getSchool().getSchoolId() : null)
+                .schoolName(savedGroup.getSchool() != null ? savedGroup.getSchool().getSchoolName() : null)
+                .memberCount(memberCount)
+                .activeRecruitmentCount(0) // 업데이트 시 모집공고 수는 별도 조회 필요
+                .createdAt(savedGroup.getCreatedAt())
+                .build();
+    }
+
+    // 동아리 멤버 목록 조회
+    public List<GroupMemberDto> getMembers(Long groupId) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
+
+        return groupMemberRepository.findByGroupGroupId(groupId)
+                .stream()
+                .map(GroupMemberDto::from)
+                .collect(Collectors.toList());
+    }
+
+    // 동아리 멤버 추가
+    @Transactional
+    public GroupMemberDto addMember(Long groupId, GroupMemberAddDto dto, User admin) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
+
+        // 권한 체크: 관리자만 멤버 추가 가능
+        if (!isGroupAdmin(admin, group)) {
+            throw new CustomException("멤버를 추가할 권한이 없습니다");
+        }
+
+        // 추가할 유저 조회
+        User targetUser = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다"));
+
+        // 이미 멤버인지 확인
+        if (groupMemberRepository.existsByUserUserIdAndGroupGroupId(dto.getUserId(), groupId)) {
+            throw new CustomException("이미 동아리에 가입된 멤버입니다");
+        }
+
+        // 멤버 추가
+        GroupMember member = GroupMember.builder()
+                .user(targetUser)
+                .group(group)
+                .role(dto.getRole() != null ? dto.getRole() : "부원")
+                .status("active")
+                .build();
+
+        GroupMember savedMember = groupMemberRepository.save(member);
+        return GroupMemberDto.from(savedMember);
+    }
+
     private boolean isGroupAdmin(User user, Group group) {
         // 그룹 리더인지 확인
         if (group.getLeaderId() != null && group.getLeaderId().equals(user.getUserId())) {

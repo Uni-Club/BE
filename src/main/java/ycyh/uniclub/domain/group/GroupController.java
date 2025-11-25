@@ -21,6 +21,14 @@ public class GroupController {
     private final RecruitmentService recruitmentService;
     private final ApplicationService applicationService;
     
+    // 동아리 생성 API
+    @PostMapping
+    public ResponseEntity<GroupResponseDto> createGroup(
+            @RequestBody GroupCreateDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(groupService.createGroup(dto, user));
+    }
+
     // 동아리 검색 API
     @GetMapping("/search")
     public ResponseEntity<List<GroupResponseDto>> searchGroups(
@@ -50,6 +58,15 @@ public class GroupController {
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupResponseDto> getGroupDetail(@PathVariable Long groupId) {
         return ResponseEntity.ok(groupService.getGroupDetail(groupId));
+    }
+
+    // 동아리 수정 API
+    @PatchMapping("/{groupId}")
+    public ResponseEntity<GroupResponseDto> updateGroup(
+            @PathVariable Long groupId,
+            @RequestBody GroupUpdateDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(groupService.updateGroup(groupId, dto, user));
     }
 
     // 학교별 동아리 목록 조회 API
@@ -111,6 +128,21 @@ public class GroupController {
             @AuthenticationPrincipal User user) {
         groupService.rejectLeaveRequest(requestId, user, dto.getReviewNote());
         return ResponseEntity.ok().build();
+    }
+
+    // 동아리 멤버 목록 조회 API
+    @GetMapping("/{groupId}/members")
+    public ResponseEntity<List<GroupMemberDto>> getMembers(@PathVariable Long groupId) {
+        return ResponseEntity.ok(groupService.getMembers(groupId));
+    }
+
+    // 동아리 멤버 추가 API
+    @PostMapping("/{groupId}/members")
+    public ResponseEntity<GroupMemberDto> addMember(
+            @PathVariable Long groupId,
+            @RequestBody GroupMemberAddDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(groupService.addMember(groupId, dto, user));
     }
 
     // 동아리 멤버 삭제 API
