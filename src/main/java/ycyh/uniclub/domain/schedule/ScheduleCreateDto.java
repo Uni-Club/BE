@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Data
 public class ScheduleCreateDto { // 일정 생성 요청 DTO
 
-    @NotNull
     private Long groupId;
 
     @NotBlank
@@ -24,10 +23,5 @@ public class ScheduleCreateDto { // 일정 생성 요청 DTO
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime date;
 
-    /**
-     * 인증 붙기 전 임시용.
-     * Security 붙이면 @AuthenticationPrincipal 에서 꺼내고 이 필드는 제거해도 됨.
-     */
-    @NotNull
-    private Long createdByUserId;
+
 }

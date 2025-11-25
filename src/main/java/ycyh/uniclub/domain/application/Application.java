@@ -56,4 +56,21 @@ public class Application {
     
     @Column(name = "decided_at")
     private LocalDateTime decidedAt;
+
+    // Setter methods for status update
+    public void setStatus(ApplicationStatus status) {
+        this.status = status;
+    }
+
+    public void setReviewer(User reviewer) {
+        this.reviewer = reviewer;
+    }
+
+    public void setReviewNote(String reviewNote) {
+        this.reviewNote = reviewNote;
+    }
+
+    public void setDecidedAt(LocalDateTime decidedAt) {
+        this.decidedAt = decidedAt;
+    }
 }
