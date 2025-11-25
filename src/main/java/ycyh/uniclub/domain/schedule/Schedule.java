@@ -1,22 +1,20 @@
 package ycyh.uniclub.domain.schedule;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.user.User;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @Table(name = "schedule")
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Schedule {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "schedule_id")

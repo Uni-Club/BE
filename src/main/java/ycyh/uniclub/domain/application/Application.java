@@ -1,10 +1,7 @@
 package ycyh.uniclub.domain.application;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.user.User;
@@ -12,8 +9,8 @@ import ycyh.uniclub.domain.user.User;
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @Table(name = "application")
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
