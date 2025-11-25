@@ -18,7 +18,7 @@ public class ScheduleController {
     // 일정 생성 API
     @PostMapping
     public ResponseEntity<ScheduleResponseDto> createSchedule(
-            @RequestBody @Valid CreateScheduleRequestDto request
+            @RequestBody @Valid ScheduleCreateDto request
     ) {
         ScheduleResponseDto response = scheduleService.createSchedule(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

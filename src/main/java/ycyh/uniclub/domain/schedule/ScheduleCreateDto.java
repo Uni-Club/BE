@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class CreateScheduleRequestDto { // 일정 생성 요청 DTO
+public class ScheduleCreateDto { // 일정 생성 요청 DTO
 
     @NotNull
     private Long groupId;
