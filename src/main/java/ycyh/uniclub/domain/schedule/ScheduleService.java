@@ -7,12 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.group.GroupRepository;
 import ycyh.uniclub.domain.user.User;
-import ycyh.uniclub.domain.user.UserRepository;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -21,16 +17,12 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final GroupRepository groupRepository;
-    private final UserRepository userRepository;
 
     // 일정 생성
-    public ScheduleResponseDto createSchedule(ScheduleCreateDto req) {
+    public ScheduleResponseDto createSchedule(ScheduleCreateDto req, User creator) {
 
         Group group = groupRepository.findById(req.getGroupId())
                 .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + req.getGroupId()));
-
-        User creator = userRepository.findById(req.getCreatedByUserId())
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다. id=" + req.getCreatedByUserId()));
 
         Schedule schedule = Schedule.builder()
                 .group(group)

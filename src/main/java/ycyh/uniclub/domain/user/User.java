@@ -86,6 +86,27 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    // Setter methods for profile update
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
+    }
+
+    public void setSchool(School school) {
+        this.school = school;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
 
 
