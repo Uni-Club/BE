@@ -20,9 +20,9 @@ public class GroupController {
     private final GroupService groupService;
     private final RecruitmentService recruitmentService;
     private final ApplicationService applicationService;
-    
+
     // 동아리 검색 API
-    @GetMapping("/search")
+    @GetMapping
     public ResponseEntity<List<GroupResponseDto>> searchGroups(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long schoolId,
@@ -35,21 +35,38 @@ public class GroupController {
                 schoolId = user.getSchool().getSchoolId();
             }
         }
-        
+
         GroupSearchDto searchDto = GroupSearchDto.builder()
                 .keyword(keyword)
                 .schoolId(schoolId)
                 .category(category)
                 .tags(tags)
                 .build();
-        
+
         return ResponseEntity.ok(groupService.searchGroups(searchDto));
+    }
+
+    // 동아리 생성 API
+    @PostMapping
+    public ResponseEntity<GroupResponseDto> createGroup(
+            @RequestBody GroupCreateDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(groupService.createGroup(dto, user));
     }
 
     // 동아리 상세 조회 API
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupResponseDto> getGroupDetail(@PathVariable Long groupId) {
         return ResponseEntity.ok(groupService.getGroupDetail(groupId));
+    }
+
+    // 동아리 수정 API
+    @PatchMapping("/{groupId}")
+    public ResponseEntity<GroupResponseDto> updateGroup(
+            @PathVariable Long groupId,
+            @RequestBody GroupUpdateDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(groupService.updateGroup(groupId, dto, user));
     }
 
     // 학교별 동아리 목록 조회 API
@@ -67,8 +84,23 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
+    // 멤버 목록 조회 API
+    @GetMapping("/{groupId}/members")
+    public ResponseEntity<List<GroupMemberDto>> getMembers(@PathVariable Long groupId) {
+        return ResponseEntity.ok(groupService.getMembers(groupId));
+    }
+
+    // 멤버 추가 API
+    @PostMapping("/{groupId}/members")
+    public ResponseEntity<GroupMemberDto> addMember(
+            @PathVariable Long groupId,
+            @RequestBody GroupMemberAddDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(groupService.addMember(groupId, dto, user));
+    }
+
     // 동아리 탈퇴 신청 API
-    @PostMapping("/{groupId}/leave-request")
+    @PostMapping("/{groupId}/leave")
     public ResponseEntity<Void> requestLeave(
             @PathVariable Long groupId,
             @RequestBody LeaveRequestCreateDto dto,
@@ -93,24 +125,14 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getMyLeaveRequest(groupId, user));
     }
 
-    // 탈퇴 신청 승인 API
-    @PutMapping("/leave-requests/{requestId}/approve")
-    public ResponseEntity<Void> approveLeaveRequest(
+    // 탈퇴 신청 처리 API (승인/거절)
+    @PatchMapping("/{groupId}/leave-requests/{requestId}")
+    public ResponseEntity<LeaveRequestDto> processLeaveRequest(
+            @PathVariable Long groupId,
             @PathVariable Long requestId,
             @RequestBody LeaveRequestReviewDto dto,
             @AuthenticationPrincipal User user) {
-        groupService.approveLeaveRequest(requestId, user, dto.getReviewNote());
-        return ResponseEntity.ok().build();
-    }
-
-    // 탈퇴 신청 거절 API
-    @PutMapping("/leave-requests/{requestId}/reject")
-    public ResponseEntity<Void> rejectLeaveRequest(
-            @PathVariable Long requestId,
-            @RequestBody LeaveRequestReviewDto dto,
-            @AuthenticationPrincipal User user) {
-        groupService.rejectLeaveRequest(requestId, user, dto.getReviewNote());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(groupService.processLeaveRequest(groupId, requestId, dto, user));
     }
 
     // 동아리 멤버 삭제 API

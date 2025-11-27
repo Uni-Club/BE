@@ -10,9 +10,11 @@ import java.util.List;
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
     List<Group> findByGroupNameContaining(String groupName);
-    
+
     List<Group> findBySchoolSchoolId(Long schoolId);
-    
+
+    boolean existsByGroupNameAndSchoolSchoolId(String groupName, Long schoolId);
+
     @Query("SELECT g FROM Group g WHERE " +
            "(:keyword IS NULL OR g.groupName LIKE %:keyword% OR g.description LIKE %:keyword%) AND " +
            "(:schoolId IS NULL OR g.school.schoolId = :schoolId OR g.isUnion = true)")

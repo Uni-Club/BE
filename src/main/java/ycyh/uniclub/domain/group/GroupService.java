@@ -3,7 +3,10 @@ package ycyh.uniclub.domain.group;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ycyh.uniclub.domain.school.School;
+import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.domain.user.UserRepository;
 import ycyh.uniclub.global.exception.CustomException;
 
 import java.util.List;
@@ -16,6 +19,8 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final SchoolRepository schoolRepository;
+    private final UserRepository userRepository;
     
     public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
         List<Group> groups = groupRepository.searchGroups(
@@ -177,7 +182,152 @@ public class GroupService {
                 .map(LeaveRequestDto::from)
                 .orElse(null);
     }
-    
+
+    // 동아리 생성
+    @Transactional
+    public GroupResponseDto createGroup(GroupCreateDto dto, User user) {
+        School school = schoolRepository.findById(dto.getSchoolId())
+                .orElseThrow(() -> new CustomException("학교를 찾을 수 없습니다"));
+
+        // 같은 학교에 동일 이름의 동아리가 있는지 확인
+        if (groupRepository.existsByGroupNameAndSchoolSchoolId(dto.getGroupName(), dto.getSchoolId())) {
+            throw new CustomException("같은 학교에 동일한 이름의 동아리가 이미 존재합니다");
+        }
+
+        Group group = Group.builder()
+                .groupName(dto.getGroupName())
+                .description(dto.getDescription())
+                .school(school)
+                .leader(user)
+                .isUnion(dto.getIsUnion() != null ? dto.getIsUnion() : false)
+                .build();
+
+        Group savedGroup = groupRepository.save(group);
+
+        // 생성자를 회장으로 멤버에 추가
+        GroupMember member = GroupMember.builder()
+                .user(user)
+                .group(savedGroup)
+                .role("회장")
+                .build();
+
+        groupMemberRepository.save(member);
+
+        return GroupResponseDto.from(savedGroup);
+    }
+
+    // 동아리 수정
+    @Transactional
+    public GroupResponseDto updateGroup(Long groupId, GroupUpdateDto dto, User user) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
+
+        // 권한 체크: 회장만 수정 가능
+        if (group.getLeaderId() == null || !group.getLeaderId().equals(user.getUserId())) {
+            throw new CustomException("동아리를 수정할 권한이 없습니다. 동아리장만 수정할 수 있습니다.");
+        }
+
+        // Group Entity에 setter가 없으므로 새 객체 생성하여 저장
+        Group updatedGroup = Group.builder()
+                .groupId(group.getGroupId())
+                .groupName(dto.getGroupName() != null ? dto.getGroupName() : group.getGroupName())
+                .description(dto.getDescription() != null ? dto.getDescription() : group.getDescription())
+                .school(group.getSchool())
+                .leader(group.getLeader())
+                .isUnion(group.getIsUnion())
+                .createdAt(group.getCreatedAt())
+                .build();
+
+        Group savedGroup = groupRepository.save(updatedGroup);
+        return GroupResponseDto.from(savedGroup);
+    }
+
+    // 멤버 목록 조회
+    public List<GroupMemberDto> getMembers(Long groupId) {
+        groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
+
+        return groupMemberRepository.findByGroupGroupId(groupId)
+                .stream()
+                .map(GroupMemberDto::from)
+                .collect(Collectors.toList());
+    }
+
+    // 멤버 추가
+    @Transactional
+    public GroupMemberDto addMember(Long groupId, GroupMemberAddDto dto, User admin) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
+
+        // 권한 체크
+        if (!isGroupAdmin(admin, group)) {
+            throw new CustomException("멤버를 추가할 권한이 없습니다");
+        }
+
+        User userToAdd = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다"));
+
+        // 이미 멤버인지 확인
+        if (groupMemberRepository.findByUserUserIdAndGroupGroupId(dto.getUserId(), groupId).isPresent()) {
+            throw new CustomException("이미 동아리 멤버입니다");
+        }
+
+        GroupMember member = GroupMember.builder()
+                .user(userToAdd)
+                .group(group)
+                .role(dto.getRole() != null ? dto.getRole() : "부원")
+                .build();
+
+        GroupMember savedMember = groupMemberRepository.save(member);
+        return GroupMemberDto.from(savedMember);
+    }
+
+    // 탈퇴 요청 처리 (승인/거절 통합)
+    @Transactional
+    public LeaveRequestDto processLeaveRequest(Long groupId, Long requestId, LeaveRequestReviewDto dto, User reviewer) {
+        LeaveRequest request = leaveRequestRepository.findById(requestId)
+                .orElseThrow(() -> new CustomException("탈퇴 요청을 찾을 수 없습니다"));
+
+        // groupId 검증
+        if (!request.getGroup().getGroupId().equals(groupId)) {
+            throw new CustomException("해당 동아리의 탈퇴 요청이 아닙니다");
+        }
+
+        // 권한 체크
+        if (!isGroupAdmin(reviewer, request.getGroup())) {
+            throw new CustomException("탈퇴 요청을 처리할 권한이 없습니다");
+        }
+
+        // 이미 처리된 요청인지 확인
+        if (request.getStatus() != LeaveRequestStatus.PENDING) {
+            throw new CustomException("이미 처리된 탈퇴 요청입니다");
+        }
+
+        String action = dto.getAction();
+        if ("APPROVE".equalsIgnoreCase(action)) {
+            request.setStatus(LeaveRequestStatus.APPROVED);
+
+            // 멤버십 삭제
+            GroupMember membership = groupMemberRepository.findByUserUserIdAndGroupGroupId(
+                    request.getUser().getUserId(), request.getGroup().getGroupId())
+                    .orElse(null);
+
+            if (membership != null) {
+                groupMemberRepository.delete(membership);
+            }
+        } else if ("REJECT".equalsIgnoreCase(action)) {
+            request.setStatus(LeaveRequestStatus.REJECTED);
+        } else {
+            throw new CustomException("유효하지 않은 action입니다. APPROVE 또는 REJECT를 사용하세요.");
+        }
+
+        request.setReviewer(reviewer);
+        request.setReviewNote(dto.getReviewNote());
+        request.setReviewedAt(java.time.LocalDateTime.now());
+
+        return LeaveRequestDto.from(request);
+    }
+
     private boolean isGroupAdmin(User user, Group group) {
         // 그룹 리더인지 확인
         if (group.getLeaderId() != null && group.getLeaderId().equals(user.getUserId())) {
