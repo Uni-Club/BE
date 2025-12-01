@@ -46,7 +46,7 @@ public class ScheduleController {
             @PathVariable("groupId") Long groupId,
             @PathVariable("scheduleId") Long scheduleId
     ) {
-        ScheduleResponseDto response = scheduleService.getSchedulesByGroup(groupId, scheduleId);
+        ScheduleResponseDto response = scheduleService.getScheduleDetail(groupId, scheduleId);
         return ResponseEntity.ok(response);
     }
 
@@ -54,11 +54,11 @@ public class ScheduleController {
     @PatchMapping("/{scheduleId}")
     public ResponseEntity<ScheduleResponseDto> updateSchedule(
             @PathVariable("groupId") Long groupId,
-            @PathVariable("scheduleId") Long scheudleId,
+            @PathVariable("scheduleId") Long scheduleId,
             @AuthenticationPrincipal User user,
             @RequestBody @Valid ScheduleUpdateDto request
     ) {
-        ScheduleResponseDto response = scheduleService.updateSchedule(groupId, scheudleId, request, user);
+        ScheduleResponseDto response = scheduleService.updateSchedule(groupId, scheduleId, request, user);
         return ResponseEntity.ok(response);
     }
 

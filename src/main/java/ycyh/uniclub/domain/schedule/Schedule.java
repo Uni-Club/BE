@@ -28,8 +28,13 @@ public class Schedule {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(nullable = false)
     private LocalDateTime startAt;
+
+    @Column(nullable = false)
     private LocalDateTime endAt;
+
+    @Column(length = 255)
     private String location;
 
     private LocalDateTime createdAt;

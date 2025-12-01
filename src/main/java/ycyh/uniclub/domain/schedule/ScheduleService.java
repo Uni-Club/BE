@@ -7,6 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.group.GroupRepository;
 import ycyh.uniclub.domain.user.User;
+
+import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +23,8 @@ public class ScheduleService {
 
     // 일정 생성
     public ScheduleResponseDto createSchedule(ScheduleCreateDto req, User creator) {
+
+        validateTimeRange(req.getStartAt(), req.getEndAt());
 
         Group group = groupRepository.findById(req.getGroupId())
                 .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + req.getGroupId()));
@@ -57,7 +62,7 @@ public class ScheduleService {
 
     // 특정 일정 상세 조회
     @Transactional(readOnly = true)
-    public ScheduleResponseDto getSchedulesByGroup(Long groupId, Long scheduleId) {
+    public ScheduleResponseDto getScheduleDetail(Long groupId, Long scheduleId) {
 
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
@@ -75,14 +80,11 @@ public class ScheduleService {
                                               Long scheduleId,
                                               ScheduleUpdateDto req,
                                               User user) {
-        Schedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
 
-        if (!schedule.getGroup().getGroupId().equals(groupId)) {
-            throw new IllegalArgumentException("해당 그룹에 속한 일정이 아닙니다.");
-        }
+        Schedule schedule = validateAndGetSchedule(groupId, scheduleId);
 
-        // 여기에서 "작성자만 수정 가능" 같은 권한 체크도 가능. 추후에 고려
+        validateScheduleOwner(schedule, user);
+        validateTimeRange(req.getStartAt(), req.getEndAt());
 
         schedule.update(
                 req.getTitle(),
@@ -98,14 +100,9 @@ public class ScheduleService {
     // 일정 삭제
     public void deleteSchedule(Long groupId, Long scheduleId, User user) {
 
-        Schedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
+        Schedule schedule = validateAndGetSchedule(groupId, scheduleId);
 
-        if (!schedule.getGroup().getGroupId().equals(groupId)) {
-            throw new IllegalArgumentException("해당 그룹에 속한 일정이 아닙니다.");
-        }
-
-        // 권한체크 개발 -> 추후에 고려
+        validateScheduleOwner(schedule, user);
 
         scheduleRepository.delete(schedule);
     }
@@ -124,5 +121,44 @@ public class ScheduleService {
                 .createdAt(schedule.getCreatedAt())
                 .updatedAt(schedule.getUpdatedAt())
                 .build();
+    }
+
+    // ================== 공통 검증 메서드 ==================
+
+    /**
+     * 일정 검증 & 조회 메서드
+     */
+    private Schedule validateAndGetSchedule(Long groupId, Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
+
+        if (!schedule.getGroup().getGroupId().equals(groupId)) {
+            throw new IllegalArgumentException("해당 그룹에 속한 일정이 아닙니다.");
+        }
+
+        return schedule;
+    }
+
+    /**
+     * 일정 작성자인지 검증하는 메서드
+     */
+    private void validateScheduleOwner(Schedule schedule, User user) {
+        if (!schedule.getCreatedBy().getUserId().equals(user.getUserId())) {
+            try {
+                throw new AccessDeniedException("일정에 대한 권한이 없습니다.");
+            } catch (AccessDeniedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * 시작/종료 시간 검증 메서드
+     */
+    private void validateTimeRange(LocalDateTime startAt, LocalDateTime endAt) {
+        if (startAt.isAfter(endAt)) {
+            throw new IllegalArgumentException("시작 시간은 종료 시간보다 이후일 수 없습니다.");
+        }
     }
 }
