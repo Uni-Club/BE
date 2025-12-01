@@ -17,14 +17,15 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-    
+
     @Value("${jwt.secret}")
     private String secretKey;
-    
+
     @Value("${jwt.expiration}")
     private long tokenValidity;
-    
+
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
     
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -60,6 +61,11 @@ public class JwtTokenProvider {
     
     public boolean validateToken(String token) {
         try {
+            // Check if token is blacklisted
+            if (tokenBlacklistService.isBlacklisted(token)) {
+                return false;
+            }
+
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
