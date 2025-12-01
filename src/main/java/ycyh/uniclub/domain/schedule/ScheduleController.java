@@ -39,4 +39,37 @@ public class ScheduleController {
         List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByGroup(groupId);
         return ResponseEntity.ok(schedules);
     }
+
+    // 특정 일정 상세 조회 API
+    @GetMapping("/{scheduleId}")
+    public ResponseEntity<ScheduleResponseDto> getScheduleDetail(
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("scheduleId") Long scheduleId
+    ) {
+        ScheduleResponseDto response = scheduleService.getScheduleDetail(groupId, scheduleId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 일정 수정 API
+    @PatchMapping("/{scheduleId}")
+    public ResponseEntity<ScheduleResponseDto> updateSchedule(
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("scheduleId") Long scheduleId,
+            @AuthenticationPrincipal User user,
+            @RequestBody @Valid ScheduleUpdateDto request
+    ) {
+        ScheduleResponseDto response = scheduleService.updateSchedule(groupId, scheduleId, request, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 일정 삭제 API
+    @DeleteMapping("/{scheduleId}")
+    public ResponseEntity<Void> deleteSchedule(
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("scheduleId") Long scheduleId,
+            @AuthenticationPrincipal User user
+    ) {
+        scheduleService.deleteSchedule(groupId, scheduleId, user);
+        return ResponseEntity.noContent().build();
+    }
 }

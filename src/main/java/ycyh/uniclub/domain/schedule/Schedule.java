@@ -10,9 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Table(name = "schedule")
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class Schedule {
 
     @Id
@@ -29,13 +27,65 @@ public class Schedule {
     
     @Column(columnDefinition = "TEXT")
     private String description;
-    
+
     @Column(nullable = false)
-    private LocalDateTime date;
-    
+    private LocalDateTime startAt;
+
+    @Column(nullable = false)
+    private LocalDateTime endAt;
+
+    @Column(length = 255)
+    private String location;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    @Builder
+    private Schedule(Group group,
+                     String title,
+                     String description,
+                     LocalDateTime startAt,
+                     LocalDateTime endAt,
+                     String location,
+                     User createdBy) {
+        this.group = group;
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.location = location;
+        this.createdBy = createdBy;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // 변경 전용 메서드
+    public void update(
+            String title,
+            String description,
+            LocalDateTime startAt,
+            LocalDateTime endAt,
+            String location
+    ) {
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.location = location;
+    }
 }
 
 
