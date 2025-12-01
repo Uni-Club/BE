@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ycyh.uniclub.domain.application.ApplicationResponseDto;
+import ycyh.uniclub.domain.application.ApplicationService;
 import ycyh.uniclub.domain.group.GroupMember;
 import ycyh.uniclub.domain.group.GroupMemberRepository;
 import ycyh.uniclub.domain.me.MyGroupDto;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 public class UserController {
     private final UserService userService;
     private final GroupMemberRepository groupMemberRepository;
+    private final ApplicationService applicationService;
 
     // 내 정보 조회 API
     @GetMapping("/me")
@@ -26,7 +29,7 @@ public class UserController {
     }
 
     // 내 정보 수정 API
-    @PutMapping("/me")
+    @PatchMapping("/me")
     public ResponseEntity<UserResponseDto> updateMyInfo(
             @AuthenticationPrincipal User user,
             @RequestBody UserUpdateDto dto) {
@@ -34,7 +37,7 @@ public class UserController {
     }
 
     // 비밀번호 변경 API
-    @PutMapping("/me/password")
+    @PatchMapping("/me/password")
     public ResponseEntity<Map<String, String>> changePassword(
             @AuthenticationPrincipal User user,
             @RequestBody Map<String, String> passwords) {
@@ -54,6 +57,12 @@ public class UserController {
                 .map(MyGroupDto::from)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
+    }
+
+    // 내 지원 내역 조회 API
+    @GetMapping("/me/applications")
+    public ResponseEntity<List<ApplicationResponseDto>> getMyApplications(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(applicationService.getMyApplications(user));
     }
 }
 
