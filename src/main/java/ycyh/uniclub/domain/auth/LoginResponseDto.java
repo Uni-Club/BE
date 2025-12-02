@@ -12,6 +12,8 @@ import ycyh.uniclub.domain.user.UserResponseDto;
 @AllArgsConstructor
 public class LoginResponseDto {
     private String token;
+    private String tokenType;
+    private Long expiresIn;
     private UserResponseDto user;
 }
 

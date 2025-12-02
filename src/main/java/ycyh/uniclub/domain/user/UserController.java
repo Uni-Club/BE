@@ -61,8 +61,7 @@ public class UserController {
 
     // 내 지원 내역 조회 API
     @GetMapping("/me/applications")
-    public ResponseEntity<List<ApplicationResponseDto>> getMyApplications(
-            @AuthenticationPrincipal User user) {
+    public ResponseEntity<List<ApplicationResponseDto>> getMyApplications(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(applicationService.getMyApplications(user));
     }
 }
