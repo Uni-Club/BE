@@ -2,22 +2,25 @@ package ycyh.uniclub.domain.schedule;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Data
 @Builder
+@Getter
 public class ScheduleResponseDto { // 일정 응답 DTO
 
     private Long scheduleId;
     private Long groupId;
     private String title;
     private String description;
-
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime date;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
+    private String location;
 
     private Long createdByUserId;
     private String createdByName;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
