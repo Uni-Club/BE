@@ -3,6 +3,7 @@ package ycyh.uniclub.domain.group;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ycyh.uniclub.domain.board.BoardService;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
@@ -21,6 +22,7 @@ public class GroupService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
+    private final BoardService boardService;
     
     public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
         List<Group> groups = groupRepository.searchGroups(
@@ -210,6 +212,9 @@ public class GroupService {
                 .group(savedGroup)
                 .role("회장")
                 .build();
+
+        // 그룹 생성시 기본 게시판 자동 생성
+        boardService.createDefaultBoardsforGroup(savedGroup);
 
         groupMemberRepository.save(member);
 
