@@ -24,7 +24,17 @@ public class RecruitmentController {
         return ResponseEntity.ok(recruitmentService.getById(id));
     }
 
-    // 모집공고 검색 API
+    // 모집공고 검색 API (FE 호환: /recruitments 및 /recruitments/search 둘 다 지원)
+    @GetMapping
+    public ResponseEntity<List<RecruitmentResponseDto>> searchRoot(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "PUBLISHED") RecruitmentStatus status
+    ) {
+        return ResponseEntity.ok(recruitmentService.search(keyword, schoolId, category, status));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<RecruitmentResponseDto>> search(
             @RequestParam(required = false) String keyword,
@@ -43,7 +53,7 @@ public class RecruitmentController {
         return ResponseEntity.ok(recruitmentService.create(dto, user));
     }
 
-    // 모집공고 상태 변경 API
+    // 모집공고 상태 변경 API (query param 방식)
     @PutMapping("/{id}/status")
     public ResponseEntity<RecruitmentResponseDto> updateStatus(
             @PathVariable Long id,
@@ -52,9 +62,27 @@ public class RecruitmentController {
         return ResponseEntity.ok(recruitmentService.updateStatus(id, status, user));
     }
 
+    // 모집공고 상태 변경 API (FE 호환: body 방식)
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<RecruitmentResponseDto> updateStatusWithBody(
+            @PathVariable Long id,
+            @RequestBody RecruitmentStatusUpdateDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(recruitmentService.updateStatus(id, dto.getStatus(), user));
+    }
+
     // 모집공고 수정 API
     @PutMapping("/{id}")
     public ResponseEntity<RecruitmentResponseDto> update(
+            @PathVariable Long id,
+            @RequestBody RecruitmentUpdateDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(recruitmentService.update(id, dto, user));
+    }
+
+    // 모집공고 수정 API (FE 호환: PATCH)
+    @PatchMapping("/{id}")
+    public ResponseEntity<RecruitmentResponseDto> updatePatch(
             @PathVariable Long id,
             @RequestBody RecruitmentUpdateDto dto,
             @AuthenticationPrincipal User user) {

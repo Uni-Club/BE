@@ -92,7 +92,7 @@ public class ApplicationService {
         
         application.setStatus(dto.getStatus());
         application.setReviewer(reviewer);
-        application.setReviewNote(dto.getMemo());
+        application.setReviewNote(dto.getReviewMessage()); // FE 호환: reviewNote 또는 memo
         application.setDecidedAt(LocalDateTime.now());
         
         // 승인시 자동으로 그룹 멤버로 추가
