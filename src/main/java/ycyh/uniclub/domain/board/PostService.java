@@ -96,6 +96,46 @@ public class PostService {
         return post;
     }
 
+    // postId만으로 게시글 조회 (FE 호환용)
+    @Transactional(readOnly = true)
+    public Post getPostEntityById(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. id=" + postId));
+    }
+
+    // postId만으로 게시글 상세 조회 (FE 호환용)
+    @Transactional(readOnly = true)
+    public PostResponseDto getPostById(Long postId) {
+        Post post = getPostEntityById(postId);
+        return toDto(post);
+    }
+
+    // postId만으로 게시글 수정 (FE 호환용)
+    public PostResponseDto updatePostById(Long postId, PostUpdateRequestDto req) {
+        Post post = getPostEntityById(postId);
+
+        if (req.getTitle() != null) {
+            String trimmed = req.getTitle().trim();
+            if (!trimmed.isEmpty()) {
+                post.setTitle(trimmed);
+            }
+        }
+
+        if (req.getContent() != null) {
+            post.setContent(req.getContent());
+        }
+
+        post.setUpdatedAt(LocalDateTime.now());
+
+        return toDto(post);
+    }
+
+    // postId만으로 게시글 삭제 (FE 호환용)
+    public void deletePostById(Long postId) {
+        Post post = getPostEntityById(postId);
+        postRepository.delete(post);
+    }
+
     // ============= 내부 변환 메서드 =============
     private PostResponseDto toDto(Post post) {
         return PostResponseDto.builder()

@@ -41,9 +41,14 @@ public class UserController {
     public ResponseEntity<Map<String, String>> changePassword(
             @AuthenticationPrincipal User user,
             @RequestBody Map<String, String> passwords) {
+        // FE 호환: currentPassword 또는 oldPassword 둘 다 지원
+        String oldPassword = passwords.get("currentPassword");
+        if (oldPassword == null) {
+            oldPassword = passwords.get("oldPassword");
+        }
         userService.changePassword(
                 user.getUserId(),
-                passwords.get("oldPassword"),
+                oldPassword,
                 passwords.get("newPassword")
         );
         return ResponseEntity.ok(Map.of("message", "비밀번호가 변경되었습니다"));

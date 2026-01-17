@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ycyh.uniclub.domain.application.ApplicationResponseDto;
+import ycyh.uniclub.domain.application.ApplicationService;
+import ycyh.uniclub.domain.application.ApplicationSubmitDto;
 import ycyh.uniclub.domain.user.User;
 
 import java.util.List;
@@ -13,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecruitmentController {
     private final RecruitmentService recruitmentService;
+    private final ApplicationService applicationService;
 
     // 모집공고 상세 조회 API
     @GetMapping("/{id}")
@@ -64,6 +68,16 @@ public class RecruitmentController {
             @AuthenticationPrincipal User user) {
         recruitmentService.delete(id, user);
         return ResponseEntity.noContent().build();
+    }
+
+    // 모집공고에 지원하기 API
+    @PostMapping("/{id}/apply")
+    public ResponseEntity<ApplicationResponseDto> apply(
+            @PathVariable Long id,
+            @RequestBody ApplicationSubmitDto dto,
+            @AuthenticationPrincipal User user) {
+        dto.setRecruitmentId(id);
+        return ResponseEntity.ok(applicationService.submit(dto, user));
     }
 }
 
