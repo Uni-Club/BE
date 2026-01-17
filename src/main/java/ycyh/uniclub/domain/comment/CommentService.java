@@ -41,6 +41,22 @@ public class CommentService {
         return CommentResponseDto.from(saved);
     }
 
+    // 댓글 수정
+    public CommentResponseDto updateComment(Long boardId, Long postId, Long commentId, User user, CommentUpdateRequestDto requestDto) {
+        getPostInBoard(boardId, postId);
+
+        Comment comment = commentRepository.findByCommentIdAndPost_PostId(commentId, postId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+
+        // 권한 체크: 작성자만 수정 가능
+        if (!comment.getAuthor().getUserId().equals(user.getUserId())) {
+            throw new IllegalStateException("댓글 수정 권한이 없습니다.");
+        }
+
+        comment.updateContent(requestDto.getContent());
+        return CommentResponseDto.from(comment);
+    }
+
     // 댓글 삭제
     public void deleteComment(Long boardId, Long postId, Long commentId, User user) {
         getPostInBoard(boardId, postId);

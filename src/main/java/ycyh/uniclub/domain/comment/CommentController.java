@@ -36,6 +36,18 @@ public class CommentController {
         return ResponseEntity.ok(commentService.createComment(boardId,postId,user,request));
     }
 
+    // 댓글 수정
+    @PatchMapping("/{commentId}")
+    public ResponseEntity<CommentResponseDto> updateComment(
+            @PathVariable Long boardId,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody CommentUpdateRequestDto request
+    ) {
+        return ResponseEntity.ok(commentService.updateComment(boardId, postId, commentId, user, request));
+    }
+
     // 댓글 삭제
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
