@@ -79,4 +79,57 @@ public class CommentService {
         return postRepository.findByPostIdAndBoard_BoardId(postId, boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
     }
+
+    // ============= FE 호환용 메서드 (postId만으로 동작) =============
+
+    // postId만으로 댓글 목록 조회
+    public List<CommentResponseDto> getCommentsByPostId(Long postId) {
+        postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        return commentRepository.findByPost_PostIdOrderByCreatedAtAsc(postId)
+                .stream()
+                .map(CommentResponseDto::from)
+                .toList();
+    }
+
+    // postId만으로 댓글 작성
+    public CommentResponseDto createCommentByPostId(Long postId, User user, CommentCreateRequestDto requestDto) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        Comment comment = Comment.builder()
+                .post(post)
+                .author(user)
+                .content(requestDto.getContent())
+                .build();
+
+        Comment saved = commentRepository.save(comment);
+        return CommentResponseDto.from(saved);
+    }
+
+    // commentId만으로 댓글 수정
+    public CommentResponseDto updateCommentById(Long commentId, User user, CommentUpdateRequestDto requestDto) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+
+        if (!comment.getAuthor().getUserId().equals(user.getUserId())) {
+            throw new IllegalStateException("댓글 수정 권한이 없습니다.");
+        }
+
+        comment.updateContent(requestDto.getContent());
+        return CommentResponseDto.from(comment);
+    }
+
+    // commentId만으로 댓글 삭제
+    public void deleteCommentById(Long commentId, User user) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+
+        if (!comment.getAuthor().getUserId().equals(user.getUserId())) {
+            throw new IllegalStateException("댓글 삭제 권한이 없습니다.");
+        }
+
+        commentRepository.delete(comment);
+    }
 }

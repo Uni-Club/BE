@@ -161,4 +161,48 @@ public class ScheduleService {
             throw new IllegalArgumentException("시작 시간은 종료 시간보다 이후일 수 없습니다.");
         }
     }
+
+    // ============= FE 호환용 메서드 (scheduleId만으로 동작) =============
+
+    // 일정 생성 (groupId를 body에서 받음)
+    public ScheduleResponseDto createScheduleSimple(ScheduleCreateDto req, User creator) {
+        return createSchedule(req, creator);
+    }
+
+    // 일정 상세 조회 (scheduleId만으로)
+    @Transactional(readOnly = true)
+    public ScheduleResponseDto getScheduleById(Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
+        return toResponse(schedule);
+    }
+
+    // 일정 수정 (scheduleId만으로)
+    public ScheduleResponseDto updateScheduleById(Long scheduleId, ScheduleUpdateDto req, User user) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
+
+        validateScheduleOwner(schedule, user);
+        validateTimeRange(req.getStartAt(), req.getEndAt());
+
+        schedule.update(
+                req.getTitle(),
+                req.getDescription(),
+                req.getStartAt(),
+                req.getEndAt(),
+                req.getLocation()
+        );
+
+        return toResponse(schedule);
+    }
+
+    // 일정 삭제 (scheduleId만으로)
+    public void deleteScheduleById(Long scheduleId, User user) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
+
+        validateScheduleOwner(schedule, user);
+
+        scheduleRepository.delete(schedule);
+    }
 }

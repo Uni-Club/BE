@@ -39,6 +39,15 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.review(id, dto, user));
     }
 
+    // 지원서 심사 API (FE 호환: PATCH /applications/{id})
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApplicationResponseDto> reviewPatch(
+            @PathVariable Long id,
+            @RequestBody ApplicationReviewDto dto,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(applicationService.review(id, dto, user));
+    }
+
     // 내 지원 내역 조회 API
     @GetMapping("/my")
     public ResponseEntity<List<ApplicationResponseDto>> getMyApplications(
