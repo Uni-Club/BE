@@ -1,10 +1,8 @@
 package ycyh.uniclub.domain.schedule;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -24,9 +22,4 @@ public class ScheduleResponseDto { // 일정 응답 DTO
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    // FE 호환: date 필드 추가 (startAt의 날짜 부분)
-    public LocalDate getDate() {
-        return startAt != null ? startAt.toLocalDate() : null;
-    }
 }
