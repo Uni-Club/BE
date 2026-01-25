@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.board.Post;
 import ycyh.uniclub.domain.board.PostRepository;
+import ycyh.uniclub.domain.notification.NotificationService;
+import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.user.User;
 
 import java.util.List;
@@ -16,6 +18,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     // 댓글 목록 조회
     public List<CommentResponseDto> getComments(Long boardId, Long postId) {
@@ -38,6 +41,15 @@ public class CommentService {
                 .build();
 
         Comment saved = commentRepository.save(comment);
+
+        // 알림 생성 (댓글)
+        User receiver = post.getAuthor();
+        if (!receiver.getUserId().equals(user.getUserId())) {
+            String content = user.getName() + "님이 게시글에 댓글을 남겼습니다.";
+            String relatedUrl = "/api/boards/" + post.getBoard().getBoardId() + "/posts/" + post.getPostId();
+            notificationService.create(receiver, NotificationType.COMMENT, content, relatedUrl);
+        }
+
         return CommentResponseDto.from(saved);
     }
 
