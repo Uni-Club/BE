@@ -2,10 +2,11 @@ package ycyh.uniclub.domain.notification;
 
 public enum NotificationType {
 
-    COMMENT,        // 내 글에 댓글
-    REPLY,          // 내 댓글에 대댓글
-    POST_NOTICED,   // 공지 관련
-    POST_PINNED,    // 고정 관련
-    SCHEDULE,       // 일정 관련
-    MEMBER_APPROVED    // 멤버 추가(승인)
+    COMMENT,            // 내 글에 댓글
+    REPLY,              // 내 댓글에 대댓글
+    POST_NOTICED,       // 공지 관련
+    POST_PINNED,        // 고정 관련
+    SCHEDULE,           // 일정 관련
+    MEMBER_APPROVED,    // 멤버 추가(승인)
+    MEMBER_KICKED      // 멤버 강제 퇴출
 }
