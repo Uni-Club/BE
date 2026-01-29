@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.board.BoardService;
+import ycyh.uniclub.domain.notification.NotificationService;
+import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
@@ -23,7 +25,8 @@ public class GroupService {
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
     private final BoardService boardService;
-    
+    private final NotificationService notificationService;
+
     public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
         List<Group> groups = groupRepository.searchGroups(
                 searchDto.getKeyword(), 
@@ -135,7 +138,7 @@ public class GroupService {
         request.setReviewNote(reviewNote);
         request.setReviewedAt(java.time.LocalDateTime.now());
     }
-    
+
     @Transactional
     public void removeMember(Long groupId, Long userId, User admin) {
         Group group = groupRepository.findById(groupId)
@@ -284,6 +287,12 @@ public class GroupService {
                 .build();
 
         GroupMember savedMember = groupMemberRepository.save(member);
+
+        // 알림 생성 (멤버 승인/추가)
+        String content = String.format("'%s' 동아리 가입이 승인되었습니다.", group.getGroupName());
+        String relatedUrl = String.format("/api/groups/%d", group.getGroupId());
+        notificationService.create(userToAdd, NotificationType.MEMBER_APPROVED, content, relatedUrl);
+
         return GroupMemberDto.from(savedMember);
     }
 

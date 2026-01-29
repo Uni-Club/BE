@@ -7,5 +7,5 @@ public enum NotificationType {
     POST_NOTICED,   // 공지 관련
     POST_PINNED,    // 고정 관련
     SCHEDULE,       // 일정 관련
-    GROUP           // 가입/권한/그룹 관련
+    MEMBER_APPROVED    // 멤버 추가(승인)
 }
