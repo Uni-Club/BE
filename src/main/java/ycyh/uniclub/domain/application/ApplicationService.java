@@ -8,9 +8,12 @@ import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.group.GroupMember;
 import ycyh.uniclub.domain.group.GroupMemberRepository;
 import ycyh.uniclub.domain.group.GroupRepository;
+import ycyh.uniclub.domain.notification.NotificationService;
+import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.recruitment.RecruitmentRepository;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.domain.user.UserRepository;
 import ycyh.uniclub.global.exception.CustomException;
 
 import java.time.LocalDateTime;
@@ -26,6 +29,8 @@ public class ApplicationService {
     private final GroupMemberRepository groupMemberRepository;
     private final GroupRepository groupRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
     
     @Transactional
     public ApplicationResponseDto submit(ApplicationSubmitDto dto, User applicant) {
@@ -50,6 +55,23 @@ public class ApplicationService {
                 .build();
         
         Application saved = applicationRepository.save(application);
+
+        // 알림 트리거: 모집공고 지원서 제출
+        Group group = recruitment.getGroup();
+        if (group != null && group.getLeaderId() != null) {
+            User leader = userRepository.findById(group.getLeaderId())
+                    .orElseThrow(() -> new CustomException("동아리장을 찾을 수 없습니다."));
+
+            String content = String.format(
+                    "'%s'님이 '%s' 모집공고에 지원했습니다.", applicant.getName(), recruitment.getTitle()
+            );
+            String relatedUrl = String.format(
+                    "/api/applications/%d", recruitment.getRecruitmentId()
+            );
+
+            notificationService.create(leader, NotificationType.APPLICATION_SUBMITTED, content, relatedUrl);
+        }
+
         return ApplicationResponseDto.from(saved);
     }
     
@@ -145,9 +167,12 @@ public class ApplicationService {
     
     private String convertToJson(Object obj) {
         try {
+            if (obj == null) {
+                return "{}";
+            }
             return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
-            return "{}";
+            throw new CustomException("answer 형식이 올바르지 않습니다.");
         }
     }
     

@@ -43,7 +43,7 @@ public class Notification {
         private String content;
 
         // 관련 링크
-        @Column(name = "related_url", nullable = false, length = 500)
+        @Column(name = "related_url", length = 500)
         private String relatedUrl;
 
         @Column(name = "is_read", nullable = false)
