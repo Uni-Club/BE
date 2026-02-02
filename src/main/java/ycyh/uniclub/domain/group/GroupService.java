@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.board.BoardService;
+import ycyh.uniclub.domain.notification.NotificationService;
+import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
@@ -23,7 +25,8 @@ public class GroupService {
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
     private final BoardService boardService;
-    
+    private final NotificationService notificationService;
+
     public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
         List<Group> groups = groupRepository.searchGroups(
                 searchDto.getKeyword(), 
@@ -62,7 +65,8 @@ public class GroupService {
         // 그룹 삭제 (연관된 데이터도 CASCADE로 삭제됨)
         groupRepository.delete(group);
     }
-    
+
+    // 탈퇴 요청 생성
     @Transactional
     public void requestLeave(Long groupId, User user, String reason) {
         Group group = groupRepository.findById(groupId)
@@ -91,6 +95,17 @@ public class GroupService {
                 .build();
         
         leaveRequestRepository.save(request);
+
+        // 알림 트리거: 회장(leader)에게 "탈퇴 신청" 알림
+        if (group.getGroupId() != null) {
+            User leader = userRepository.findById(group.getLeaderId())
+                    .orElseThrow(() -> new CustomException("동아리장을 찾을 수 없습니다."));
+
+            String content = String.format("'%s'님이 '%s' 동아리 탈퇴를 신청했습니다.", user.getName(), group.getGroupName());
+            String relatedUrl = String.format("/api/groups/%d/leave-requests", groupId);
+
+            notificationService.create(leader, NotificationType.LEAVE_REQUESTED, content, relatedUrl);
+        }
     }
     
     @Transactional
@@ -135,7 +150,8 @@ public class GroupService {
         request.setReviewNote(reviewNote);
         request.setReviewedAt(java.time.LocalDateTime.now());
     }
-    
+
+    // 멤버 삭제
     @Transactional
     public void removeMember(Long groupId, Long userId, User admin) {
         Group group = groupRepository.findById(groupId)
@@ -155,12 +171,20 @@ public class GroupService {
         if (group.getLeaderId().equals(userId)) {
             throw new CustomException("동아리장을 강제 탈퇴시킬 수 없습니다");
         }
-        
+
+        // 퇴출 대상 사용자 조회 (알림 receiver)
+        User userToRemove = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다."));
+
         // 멤버십 삭제
         GroupMember membership = groupMemberRepository.findByUserUserIdAndGroupGroupId(userId, groupId)
                 .orElseThrow(() -> new CustomException("해당 멤버를 찾을 수 없습니다"));
-        
+
         groupMemberRepository.delete(membership);
+
+        // 알림 트리거: 강제 퇴출
+        String content = String.format("'%s' 동아리에서 퇴출되었습니다.", group.getGroupName());
+        notificationService.create(userToRemove, NotificationType.MEMBER_KICKED, content, null);
     }
     
     public List<LeaveRequestDto> getLeaveRequests(Long groupId, User user) {
@@ -284,6 +308,12 @@ public class GroupService {
                 .build();
 
         GroupMember savedMember = groupMemberRepository.save(member);
+
+        // 알림 생성 (멤버 승인/추가)
+        String content = String.format("'%s' 동아리 가입이 승인되었습니다.", group.getGroupName());
+        String relatedUrl = String.format("/api/groups/%d", group.getGroupId());
+        notificationService.create(userToAdd, NotificationType.MEMBER_APPROVED, content, relatedUrl);
+
         return GroupMemberDto.from(savedMember);
     }
 
@@ -329,6 +359,18 @@ public class GroupService {
         request.setReviewer(reviewer);
         request.setReviewNote(dto.getReviewNote());
         request.setReviewedAt(java.time.LocalDateTime.now());
+
+        // 알림 트리거: 신청자에게 승인/거절 결과 알림
+        User requester = request.getUser();
+        String relatedUrl = String.format("/api/groups/%d", request.getGroup().getGroupId());
+
+        if (request.getStatus() == LeaveRequestStatus.APPROVED) {
+            String content = String.format("'%s' 동아리 탈퇴가 승인되었습니다.", request.getGroup().getGroupName());
+            notificationService.create(requester, NotificationType.LEAVE_APPROVED, content, relatedUrl);
+        } else if (request.getStatus() == LeaveRequestStatus.REJECTED) {
+            String content = String.format("'%s' 동아리 탈퇴가 거절되었습니다.", request.getGroup().getGroupName());
+            notificationService.create(requester, NotificationType.LEAVE_REJECTED, content, relatedUrl);
+        }
 
         return LeaveRequestDto.from(request);
     }
