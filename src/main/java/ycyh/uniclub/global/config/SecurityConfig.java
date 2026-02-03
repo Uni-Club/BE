@@ -3,6 +3,7 @@ package ycyh.uniclub.global.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,8 +39,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/schools/**", "/api/groups/search",
-                                       "/api/groups/*", "/api/recruitments/**", "/api/boards",
-                                "/api/posts","/h2-console/**").permitAll()
+                                       "/api/groups/*", "/api/recruitments/**", "/api/boards/**",
+                                "/api/posts/**","/api/notification/**","/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
