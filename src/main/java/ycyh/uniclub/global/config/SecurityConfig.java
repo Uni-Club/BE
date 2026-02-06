@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/schools/**", "/api/groups/search",
-                                       "/api/groups/*", "/api/recruitments/**", "/api/boards/**",
+                                       "/api/groups/**", "/api/recruitments/**", "/api/boards/**",
                                 "/api/posts/**","/api/notification/**","/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
