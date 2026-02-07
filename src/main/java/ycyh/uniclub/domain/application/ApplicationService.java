@@ -10,9 +10,11 @@ import ycyh.uniclub.domain.group.GroupMember;
 import ycyh.uniclub.domain.group.GroupMemberRepository;
 import ycyh.uniclub.domain.group.GroupRepository;
 import ycyh.uniclub.domain.notification.NotificationService;
+import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.recruitment.RecruitmentRepository;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.domain.user.UserRepository;
 import ycyh.uniclub.global.exception.CustomException;
 
 import java.time.LocalDateTime;
@@ -29,20 +31,21 @@ public class ApplicationService {
     private final GroupRepository groupRepository;
     private final GroupAuthorizationService groupAuthorizationService;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    
+
     @Transactional
     public ApplicationResponseDto submit(ApplicationSubmitDto dto, User applicant) {
         // 모집공고 확인
         Recruitment recruitment = recruitmentRepository.findById(dto.getRecruitmentId())
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
-        
+
         // 중복 지원 체크
         if (applicationRepository.existsByRecruitmentRecruitmentIdAndApplicantUserId(
                 dto.getRecruitmentId(), applicant.getUserId())) {
             throw new CustomException("이미 지원한 모집공고입니다");
         }
-        
+
         // 지원서 생성
         Application application = Application.builder()
                 .recruitment(recruitment)
@@ -52,43 +55,60 @@ public class ApplicationService {
                 .answers(convertToJson(dto.getAnswers()))
                 .status(ApplicationStatus.SUBMITTED)
                 .build();
-        
+
         Application saved = applicationRepository.save(application);
+
+        // 알림 트리거: 모집공고 지원서 제출
+        Group group = recruitment.getGroup();
+        if (group != null && group.getLeaderId() != null) {
+            User leader = userRepository.findById(group.getLeaderId())
+                    .orElseThrow(() -> new CustomException("동아리장을 찾을 수 없습니다."));
+
+            String content = String.format(
+                    "'%s'님이 '%s' 모집공고에 지원했습니다.", applicant.getName(), recruitment.getTitle()
+            );
+            String relatedUrl = String.format(
+                    "/api/applications/%d", recruitment.getRecruitmentId()
+            );
+
+            notificationService.create(leader, NotificationType.APPLICATION_SUBMITTED, content, relatedUrl);
+        }
+
         return ApplicationResponseDto.from(saved);
     }
-    
+
     public List<ApplicationResponseDto> getByGroup(Long groupId, User user) {
         // 권한 체크: 그룹 관리자만 지원서 목록 조회 가능
         if (!groupAuthorizationService.isGroupAdmin(user, groupId)) {
             throw new CustomException("지원서 목록을 조회할 권한이 없습니다");
         }
-        
+
         return applicationRepository.findByGroupGroupId(groupId)
                 .stream()
                 .map(ApplicationResponseDto::from)
                 .collect(Collectors.toList());
     }
-    
+
     public ApplicationResponseDto getById(Long id, User user) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new CustomException("지원서를 찾을 수 없습니다"));
-        
+
         // 권한 체크: 지원자 본인 또는 그룹 관리자만 조회 가능
         boolean isApplicant = application.getApplicant().getUserId().equals(user.getUserId());
         boolean isAdmin = groupAuthorizationService.isGroupAdmin(user, application.getGroup().getGroupId());
-        
+
         if (!isApplicant && !isAdmin) {
             throw new CustomException("지원서를 조회할 권한이 없습니다");
         }
-        
+
         return ApplicationResponseDto.from(application);
     }
-    
+
     @Transactional
     public ApplicationResponseDto review(Long id, ApplicationReviewDto dto, User reviewer) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new CustomException("지원서를 찾을 수 없습니다"));
-        
+
         // 권한 체크: 그룹 관리자만 심사 가능
         if (!groupAuthorizationService.isGroupAdmin(reviewer, application.getGroup().getGroupId())) {
             throw new CustomException("지원서를 심사할 권한이 없습니다");
@@ -110,17 +130,21 @@ public class ApplicationService {
             groupMemberRepository.save(member);
 
             // 지원 승인 알림
-            notificationService.createNotification(
+            String content = "지원이 승인되었습니다! " + application.getGroup().getGroupName() + "의 멤버가 되었습니다.";
+            String relatedUrl = "/groups/" + application.getGroup().getGroupId();
+            notificationService.create(
                     application.getApplicant(),
-                    "지원이 승인되었습니다! " + application.getGroup().getGroupName() + "의 멤버가 되었습니다.",
-                    "/groups/" + application.getGroup().getGroupId()
+                    NotificationType.APPLICATION_ACCEPTED,
+                    content,
+                    relatedUrl
             );
         }
 
         // 지원 거절 알림
         if (dto.getStatus() == ApplicationStatus.REJECTED) {
-            notificationService.createNotification(
+            notificationService.create(
                     application.getApplicant(),
+                    NotificationType.APPLICATION_REJECTED,
                     "지원이 거절되었습니다.",
                     null
             );
@@ -128,47 +152,50 @@ public class ApplicationService {
 
         return ApplicationResponseDto.from(application);
     }
-    
+
     public List<ApplicationResponseDto> getMyApplications(User user) {
         return applicationRepository.findByApplicantUserId(user.getUserId())
                 .stream()
                 .map(ApplicationResponseDto::from)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional
     public void cancel(Long id, User user) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new CustomException("지원서를 찾을 수 없습니다"));
-        
+
         // 본인 지원서인지 확인
         if (!application.getApplicant().getUserId().equals(user.getUserId())) {
             throw new CustomException("본인의 지원서만 취소할 수 있습니다");
         }
-        
+
         // 이미 처리된 지원서는 취소 불가
-        if (application.getStatus() != ApplicationStatus.SUBMITTED && 
+        if (application.getStatus() != ApplicationStatus.SUBMITTED &&
             application.getStatus() != ApplicationStatus.UNDER_REVIEW) {
             throw new CustomException("이미 처리된 지원서는 취소할 수 없습니다");
         }
-        
+
         application.setStatus(ApplicationStatus.CANCELLED);
         application.setDecidedAt(LocalDateTime.now());
         applicationRepository.save(application);
     }
-    
+
     public ApplicationResponseDto getMyApplicationStatus(Long recruitmentId, User user) {
         return applicationRepository.findByRecruitmentRecruitmentIdAndApplicantUserId(recruitmentId, user.getUserId())
                 .map(ApplicationResponseDto::from)
                 .orElse(null);
     }
-    
+
     private String convertToJson(Object obj) {
         try {
+            if (obj == null) {
+                return "{}";
+            }
             return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
-            return "{}";
+            throw new CustomException("answer 형식이 올바르지 않습니다.");
         }
     }
-    
+
 }

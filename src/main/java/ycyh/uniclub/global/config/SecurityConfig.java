@@ -3,9 +3,9 @@ package ycyh.uniclub.global.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,10 +27,10 @@ import java.util.Arrays;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
-    
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -45,27 +45,29 @@ public class SecurityConfig {
                         // Public GET endpoints only
                         .requestMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups", "/api/groups/{groupId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/groups/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups/{groupId}/members").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recruitments", "/api/recruitments/{recruitmentId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts", "/api/boards/{boardId}/posts/{postId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts/{postId}/comments").permitAll()
-                        // All other requests require authentication
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        // All other requests require authentication (including /api/notifications/**)
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authenticationProvider(daoAuthenticationProvider())
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), 
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                                UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -78,7 +80,7 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -86,7 +88,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

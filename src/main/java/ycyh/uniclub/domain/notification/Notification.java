@@ -7,36 +7,55 @@ import ycyh.uniclub.domain.user.User;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(
+        name = "notification",
+        indexes = {
+                @Index(name = "idx_notification_user_created_at", columnList = "user_id, created_at"),
+                @Index(name = "idx_notification_user_is_read_created_at", columnList = "user_id, is_read, created_at")
+        }
+)
 @Getter
-@Table(name = "notification")
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notification_id")
     private Long notificationId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // 수신자
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 255)
+    // 알림 타입
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 50)
+    private NotificationType type;
+
+    // 알림 내용
+    @Column(name = "content", nullable = false, length = 255)
     private String content;
 
-    @Column(name = "related_url", length = 255)
+    // 관련 링크
+    @Column(name = "related_url", length = 500)
     private String relatedUrl;
 
-    @Column(name = "is_read")
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
-    private boolean isRead = false;
+    private boolean read = false;
 
-    @Column(name = "created_at")
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    private void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     public void markAsRead() {
-        this.isRead = true;
+        this.read = true;
     }
 }

@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.notification;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -7,8 +8,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class NotificationResponseDto {
     private Long notificationId;
+    private NotificationType type;
     private String content;
     private String relatedUrl;
     private boolean isRead;
@@ -17,6 +20,7 @@ public class NotificationResponseDto {
     public static NotificationResponseDto from(Notification n) {
         return NotificationResponseDto.builder()
                 .notificationId(n.getNotificationId())
+                .type(n.getType())
                 .content(n.getContent())
                 .relatedUrl(n.getRelatedUrl())
                 .isRead(n.isRead())

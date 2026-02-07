@@ -5,7 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.group.GroupMember;
+import ycyh.uniclub.domain.group.GroupMemberRepository;
 import ycyh.uniclub.domain.group.GroupRepository;
+import ycyh.uniclub.domain.notification.NotificationService;
+import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.user.User;
 
 import org.springframework.http.HttpStatus;
@@ -22,6 +26,8 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final GroupRepository groupRepository;
+    private final GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     // 일정 생성
     public ScheduleResponseDto createSchedule(ScheduleCreateDto req, User creator) {
@@ -42,6 +48,11 @@ public class ScheduleService {
                 .build();
 
         Schedule saved = scheduleRepository.save(schedule);
+
+        // 알림 트리거: 멤버들에게 일정 생성 알림
+        String content = String.format("'%s' 동아리에 새 일정이 등록되었습니다: %s", group.getGroupName(), saved.getTitle());
+        String relatedUrl = String.format("/api/groups/%d/schedules/%d", group.getGroupId(), saved.getScheduleId()); // 라우팅에 맞게 조정
+        notifyGroupMembers(group.getGroupId(), NotificationType.SCHEDULE_CREATED, content, relatedUrl);
 
         return toResponse(saved);
     }
@@ -96,6 +107,12 @@ public class ScheduleService {
                 req.getLocation()
         );
 
+        // 알림 트리거: 멤버들에게 일정 변경 알림
+        String afterTitle = schedule.getTitle();
+        String content = String.format("'%s' 동아리 일정이 변경되었습니다: %s", schedule.getGroup().getGroupName(), afterTitle);
+        String relatedUrl = String.format("/api/groups/%d/schedules/%d", groupId, scheduleId);
+        notifyGroupMembers(groupId, NotificationType.SCHEDULE_UPDATED, content, relatedUrl);
+
         return toResponse(schedule);
     }
 
@@ -106,7 +123,15 @@ public class ScheduleService {
 
         validateScheduleOwner(schedule, user);
 
+        String title = schedule.getTitle();
+        String groupName = schedule.getGroup().getGroupName();
+
         scheduleRepository.delete(schedule);
+
+        // 알림 트리거: 멤버들에게 일정 취소 알림
+        String content = String.format("'%s' 동아리 일정이 취소되었습니다: %s", groupName, title);
+        String relatedUrl = String.format("/api/groups/%d/schedules", groupId);
+        notifyGroupMembers(groupId, NotificationType.SCHEDULE_DELETED, content, relatedUrl);
     }
 
     private ScheduleResponseDto toResponse(Schedule schedule) {
@@ -157,6 +182,18 @@ public class ScheduleService {
     private void validateTimeRange(LocalDateTime startAt, LocalDateTime endAt) {
         if (startAt.isAfter(endAt)) {
             throw new IllegalArgumentException("시작 시간은 종료 시간보다 이후일 수 없습니다.");
+        }
+    }
+
+    /**
+     * 알림 트리거 공통 메서드
+     */
+    private void notifyGroupMembers(Long groupId, NotificationType type, String content, String relatedUrl) {
+        List<GroupMember> members = groupMemberRepository.findByGroupGroupId(groupId);
+
+        for (GroupMember member : members) {
+            User receiver = member.getUser();
+            notificationService.create(receiver, type, content, relatedUrl);
         }
     }
 
