@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ycyh.uniclub.domain.user.User;
@@ -21,9 +22,14 @@ public class PostController {
     // 특정 게시판의 게시글 목록 조회
     @GetMapping("/{boardId}/posts")
     public ResponseEntity<List<PostResponseDto>> getPostsByBoard(
-            @PathVariable Long boardId
+            @PathVariable Long boardId,
+            Authentication authentication
     ) {
-        List<PostResponseDto> posts = postService.getPostsByBoard(boardId);
+        User user = null;
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            user = (User) authentication.getPrincipal();
+        }
+        List<PostResponseDto> posts = postService.getPostsByBoard(boardId, user);
         return ResponseEntity.ok(posts);
     }
 

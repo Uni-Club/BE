@@ -110,35 +110,35 @@ public class DataInitializer implements CommandLineRunner {
         groupMemberRepository.save(GroupMember.builder()
                 .user(user1)
                 .group(group1)
-                .role("리더")
+                .role("회장")
                 .status("active")
                 .build());
         
         groupMemberRepository.save(GroupMember.builder()
                 .user(user2)
                 .group(group2)
-                .role("리더")
+                .role("회장")
                 .status("active")
                 .build());
         
         groupMemberRepository.save(GroupMember.builder()
                 .user(user3)
                 .group(group3)
-                .role("리더")
+                .role("회장")
                 .status("active")
                 .build());
         
         groupMemberRepository.save(GroupMember.builder()
                 .user(user1)
                 .group(group4)
-                .role("리더")
+                .role("회장")
                 .status("active")
                 .build());
         
         groupMemberRepository.save(GroupMember.builder()
                 .user(user2)
                 .group(group5)
-                .role("리더")
+                .role("회장")
                 .status("active")
                 .build());
         

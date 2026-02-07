@@ -2,9 +2,12 @@ package ycyh.uniclub.domain.board;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ycyh.uniclub.domain.group.GroupAuthorizationService;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.global.exception.CustomException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,11 +19,19 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
+    private final GroupAuthorizationService groupAuthorizationService;
 
     // 특정 게시판의 게시글 목록 조회
-    public List<PostResponseDto> getPostsByBoard(Long boardID) {
+    public List<PostResponseDto> getPostsByBoard(Long boardID, User user) {
         Board board = boardRepository.findById(boardID)
                 .orElseThrow(() -> new EntityNotFoundException("게시판을 찾을 수 없습니다. id=" + boardID));
+
+        // GROUP_ONLY 게시판의 경우 멤버만 조회 가능
+        if (board.getVisibility() == PostVisibility.GROUP_ONLY) {
+            if (user == null || !groupAuthorizationService.isGroupMember(user, board.getGroup().getGroupId())) {
+                throw new CustomException("동아리 멤버만 조회할 수 있는 게시판입니다", HttpStatus.FORBIDDEN);
+            }
+        }
 
         List<Post> posts = postRepository.findByBoard(board);
 

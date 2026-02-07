@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.schedule;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import ycyh.uniclub.domain.user.User;
@@ -19,6 +20,7 @@ public class ScheduleParticipant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)
+    @JsonIgnore
     private Schedule schedule;
 
     @ManyToOne(fetch = FetchType.LAZY)

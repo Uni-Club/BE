@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.board;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import ycyh.uniclub.domain.group.Group;
@@ -22,6 +23,7 @@ public class Board {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
+    @JsonIgnore
     private Group group;
     
     @Column(nullable = false, length = 100)
@@ -43,6 +45,7 @@ public class Board {
     
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Post> posts = new ArrayList<>();
 }
 

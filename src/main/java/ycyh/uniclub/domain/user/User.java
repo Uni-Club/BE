@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +31,7 @@ public class User implements UserDetails {
     private String email;
     
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
     
     @Column(nullable = false, length = 100)
@@ -51,10 +53,12 @@ public class User implements UserDetails {
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<GroupMember> groupMembers = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Application> applications = new ArrayList<>();
     
     @Override

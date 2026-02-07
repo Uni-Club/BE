@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -37,9 +38,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/schools/**", "/api/groups/search",
-                                       "/api/groups/*", "/api/recruitments/**", "/api/boards",
-                                "/api/posts","/h2-console/**").permitAll()
+                        // Auth endpoints (login, register)
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // H2 console
+                        .requestMatchers("/h2-console/**").permitAll()
+                        // Public GET endpoints only
+                        .requestMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/groups", "/api/groups/{groupId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/groups/{groupId}/members").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recruitments", "/api/recruitments/{recruitmentId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts", "/api/boards/{boardId}/posts/{postId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts/{postId}/comments").permitAll()
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
@@ -72,7 +83,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         

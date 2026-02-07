@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.group.GroupAuthorizationService;
 import ycyh.uniclub.domain.group.GroupRepository;
 import ycyh.uniclub.domain.group.GroupMemberRepository;
 import ycyh.uniclub.domain.user.User;
@@ -20,6 +21,7 @@ public class RecruitmentService {
     private final RecruitmentRepository recruitmentRepository;
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final GroupAuthorizationService groupAuthorizationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<RecruitmentResponseDto> getByGroup(Long groupId) {
@@ -46,7 +48,7 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
         
         // 권한 체크: 그룹 리더 또는 관리자만 모집공고 생성 가능
-        if (!isGroupAdmin(user, group)) {
+        if (!groupAuthorizationService.isGroupAdmin(user, group)) {
             throw new CustomException("모집공고를 생성할 권한이 없습니다");
         }
         
@@ -79,7 +81,7 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
         
         // 권한 체크: 그룹 리더 또는 관리자만 상태 변경 가능
-        if (!isGroupAdmin(user, recruitment.getGroup())) {
+        if (!groupAuthorizationService.isGroupAdmin(user, recruitment.getGroup())) {
             throw new CustomException("모집공고 상태를 변경할 권한이 없습니다");
         }
         
@@ -101,7 +103,7 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!isGroupAdmin(user, recruitment.getGroup())) {
+        if (!groupAuthorizationService.isGroupAdmin(user, recruitment.getGroup())) {
             throw new CustomException("모집공고를 수정할 권한이 없습니다");
         }
         
@@ -124,27 +126,13 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!isGroupAdmin(user, recruitment.getGroup())) {
+        if (!groupAuthorizationService.isGroupAdmin(user, recruitment.getGroup())) {
             throw new CustomException("모집공고를 삭제할 권한이 없습니다");
         }
         
         recruitmentRepository.delete(recruitment);
     }
     
-    private boolean isGroupAdmin(User user, Group group) {
-        // 그룹 리더인지 확인
-        if (group.getLeaderId() != null && group.getLeaderId().equals(user.getUserId())) {
-            return true;
-        }
-        
-        // 그룹 멤버 중 관리자 권한이 있는지 확인
-        return groupMemberRepository.findByUserUserIdAndGroupGroupId(user.getUserId(), group.getGroupId())
-                .map(member -> {
-                    String role = member.getRole();
-                    return "회장".equals(role) || "부회장".equals(role) || "관리자".equals(role);
-                })
-                .orElse(false);
-    }
 }
 
 

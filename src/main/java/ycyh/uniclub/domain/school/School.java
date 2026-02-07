@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.school;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,10 +43,12 @@ public class School {
     
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<User> users = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Group> groups = new ArrayList<>();
 }
 

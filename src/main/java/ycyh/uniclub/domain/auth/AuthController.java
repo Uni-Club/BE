@@ -24,6 +24,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final PasswordResetService passwordResetService;
 
     @Value("${jwt.expiration}")
     private long tokenValidity;
@@ -88,6 +89,20 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "로그아웃 처리 중 오류가 발생했습니다."));
         }
+    }
+
+    // 비밀번호 재설정 요청 API
+    @PostMapping("/password-reset")
+    public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto dto) {
+        passwordResetService.requestReset(dto.getEmail());
+        return ResponseEntity.ok(Map.of("message", "비밀번호 재설정 코드가 발송되었습니다."));
+    }
+
+    // 비밀번호 재설정 검증 및 변경 API
+    @PostMapping("/password-reset/verify")
+    public ResponseEntity<?> verifyPasswordReset(@RequestBody PasswordResetVerifyDto dto) {
+        passwordResetService.verifyAndReset(dto.getEmail(), dto.getCode(), dto.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
     }
 }
 

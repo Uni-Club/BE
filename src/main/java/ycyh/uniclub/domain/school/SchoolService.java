@@ -1,8 +1,10 @@
 package ycyh.uniclub.domain.school;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ycyh.uniclub.global.exception.CustomException;
 
 import java.util.List;
 
@@ -25,7 +27,7 @@ public class SchoolService {
     
     public School getSchoolById(Long schoolId) {
         return schoolRepository.findById(schoolId)
-                .orElse(null);
+                .orElseThrow(() -> new CustomException("학교를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
     }
 }
 

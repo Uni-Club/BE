@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.group;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import ycyh.uniclub.domain.school.School;
@@ -44,18 +45,22 @@ public class Group {
     
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<GroupMember> members = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Recruitment> recruitments = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Board> boards = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Schedule> schedules = new ArrayList<>();
 
     @Column(name = "is_union")
@@ -65,6 +70,16 @@ public class Group {
     // Helper method to get leader ID
     public Long getLeaderId() {
         return leader != null ? leader.getUserId() : null;
+    }
+
+    // Update mutable fields in-place to preserve collection relationships
+    public void updateInfo(String groupName, String description) {
+        if (groupName != null) {
+            this.groupName = groupName;
+        }
+        if (description != null) {
+            this.description = description;
+        }
     }
 }
 

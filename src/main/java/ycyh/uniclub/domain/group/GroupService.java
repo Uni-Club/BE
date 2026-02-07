@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.board.BoardService;
+import ycyh.uniclub.domain.notification.NotificationService;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
@@ -23,6 +24,8 @@ public class GroupService {
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
     private final BoardService boardService;
+    private final GroupAuthorizationService groupAuthorizationService;
+    private final NotificationService notificationService;
     
     public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
         List<Group> groups = groupRepository.searchGroups(
@@ -99,7 +102,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("탈퇴 요청을 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!isGroupAdmin(reviewer, request.getGroup())) {
+        if (!groupAuthorizationService.isGroupAdmin(reviewer, request.getGroup())) {
             throw new CustomException("탈퇴 요청을 승인할 권한이 없습니다");
         }
         
@@ -125,7 +128,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("탈퇴 요청을 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!isGroupAdmin(reviewer, request.getGroup())) {
+        if (!groupAuthorizationService.isGroupAdmin(reviewer, request.getGroup())) {
             throw new CustomException("탈퇴 요청을 거절할 권한이 없습니다");
         }
         
@@ -142,7 +145,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!isGroupAdmin(admin, group)) {
+        if (!groupAuthorizationService.isGroupAdmin(admin, group)) {
             throw new CustomException("멤버를 강제 탈퇴시킬 권한이 없습니다");
         }
         
@@ -168,7 +171,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!isGroupAdmin(user, group)) {
+        if (!groupAuthorizationService.isGroupAdmin(user, group)) {
             throw new CustomException("탈퇴 요청을 조회할 권한이 없습니다");
         }
         
@@ -232,19 +235,10 @@ public class GroupService {
             throw new CustomException("동아리를 수정할 권한이 없습니다. 동아리장만 수정할 수 있습니다.");
         }
 
-        // Group Entity에 setter가 없으므로 새 객체 생성하여 저장
-        Group updatedGroup = Group.builder()
-                .groupId(group.getGroupId())
-                .groupName(dto.getGroupName() != null ? dto.getGroupName() : group.getGroupName())
-                .description(dto.getDescription() != null ? dto.getDescription() : group.getDescription())
-                .school(group.getSchool())
-                .leader(group.getLeader())
-                .isUnion(group.getIsUnion())
-                .createdAt(group.getCreatedAt())
-                .build();
+        // Update fields in-place to preserve collection relationships (members, boards, recruitments, schedules)
+        group.updateInfo(dto.getGroupName(), dto.getDescription());
 
-        Group savedGroup = groupRepository.save(updatedGroup);
-        return GroupResponseDto.from(savedGroup);
+        return GroupResponseDto.from(group);
     }
 
     // 멤버 목록 조회
@@ -265,7 +259,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 권한 체크
-        if (!isGroupAdmin(admin, group)) {
+        if (!groupAuthorizationService.isGroupAdmin(admin, group)) {
             throw new CustomException("멤버를 추가할 권한이 없습니다");
         }
 
@@ -299,7 +293,7 @@ public class GroupService {
         }
 
         // 권한 체크
-        if (!isGroupAdmin(reviewer, request.getGroup())) {
+        if (!groupAuthorizationService.isGroupAdmin(reviewer, request.getGroup())) {
             throw new CustomException("탈퇴 요청을 처리할 권한이 없습니다");
         }
 
@@ -320,8 +314,22 @@ public class GroupService {
             if (membership != null) {
                 groupMemberRepository.delete(membership);
             }
+
+            // 탈퇴 승인 알림
+            notificationService.createNotification(
+                    request.getUser(),
+                    "탈퇴 신청이 승인되었습니다.",
+                    "/groups/" + request.getGroup().getGroupId()
+            );
         } else if ("REJECT".equalsIgnoreCase(action)) {
             request.setStatus(LeaveRequestStatus.REJECTED);
+
+            // 탈퇴 거절 알림
+            notificationService.createNotification(
+                    request.getUser(),
+                    "탈퇴 신청이 거절되었습니다.",
+                    "/groups/" + request.getGroup().getGroupId()
+            );
         } else {
             throw new CustomException("유효하지 않은 action입니다. APPROVE 또는 REJECT를 사용하세요.");
         }
@@ -331,21 +339,6 @@ public class GroupService {
         request.setReviewedAt(java.time.LocalDateTime.now());
 
         return LeaveRequestDto.from(request);
-    }
-
-    private boolean isGroupAdmin(User user, Group group) {
-        // 그룹 리더인지 확인
-        if (group.getLeaderId() != null && group.getLeaderId().equals(user.getUserId())) {
-            return true;
-        }
-        
-        // 그룹 멤버 중 관리자 권한이 있는지 확인
-        return groupMemberRepository.findByUserUserIdAndGroupGroupId(user.getUserId(), group.getGroupId())
-                .map(member -> {
-                    String role = member.getRole();
-                    return "회장".equals(role) || "부회장".equals(role) || "관리자".equals(role);
-                })
-                .orElse(false);
     }
 }
 

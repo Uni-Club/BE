@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import ycyh.uniclub.domain.user.User;
 
 import java.util.List;
 
@@ -18,9 +20,14 @@ public class BoardController {
     // 그룹별 게시판 목록 조회
     @GetMapping
     public ResponseEntity<List<BoardResponseDto>> getBoardsByGroup(
-            @PathVariable Long groupId
+            @PathVariable Long groupId,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(boardService.getBoardsByGroup(groupId));
+        User user = null;
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            user = (User) authentication.getPrincipal();
+        }
+        return ResponseEntity.ok(boardService.getBoardsByGroup(groupId, user));
     }
 
     // 게시판 생성

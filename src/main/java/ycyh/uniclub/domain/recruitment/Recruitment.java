@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.recruitment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import ycyh.uniclub.domain.group.Group;
@@ -73,6 +74,7 @@ public class Recruitment {
     
     @OneToMany(mappedBy = "recruitment", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private List<Application> applications = new ArrayList<>();
     
     @Column(name = "custom_fields", columnDefinition = "TEXT")

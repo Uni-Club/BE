@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.group.GroupAuthorizationService;
 import ycyh.uniclub.domain.group.GroupMember;
 import ycyh.uniclub.domain.group.GroupMemberRepository;
 import ycyh.uniclub.domain.group.GroupRepository;
+import ycyh.uniclub.domain.notification.NotificationService;
 import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.recruitment.RecruitmentRepository;
 import ycyh.uniclub.domain.user.User;
@@ -25,6 +27,8 @@ public class ApplicationService {
     private final RecruitmentRepository recruitmentRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final GroupRepository groupRepository;
+    private final GroupAuthorizationService groupAuthorizationService;
+    private final NotificationService notificationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Transactional
@@ -55,7 +59,7 @@ public class ApplicationService {
     
     public List<ApplicationResponseDto> getByGroup(Long groupId, User user) {
         // 권한 체크: 그룹 관리자만 지원서 목록 조회 가능
-        if (!isGroupAdmin(user, groupId)) {
+        if (!groupAuthorizationService.isGroupAdmin(user, groupId)) {
             throw new CustomException("지원서 목록을 조회할 권한이 없습니다");
         }
         
@@ -71,7 +75,7 @@ public class ApplicationService {
         
         // 권한 체크: 지원자 본인 또는 그룹 관리자만 조회 가능
         boolean isApplicant = application.getApplicant().getUserId().equals(user.getUserId());
-        boolean isAdmin = isGroupAdmin(user, application.getGroup().getGroupId());
+        boolean isAdmin = groupAuthorizationService.isGroupAdmin(user, application.getGroup().getGroupId());
         
         if (!isApplicant && !isAdmin) {
             throw new CustomException("지원서를 조회할 권한이 없습니다");
@@ -86,15 +90,15 @@ public class ApplicationService {
                 .orElseThrow(() -> new CustomException("지원서를 찾을 수 없습니다"));
         
         // 권한 체크: 그룹 관리자만 심사 가능
-        if (!isGroupAdmin(reviewer, application.getGroup().getGroupId())) {
+        if (!groupAuthorizationService.isGroupAdmin(reviewer, application.getGroup().getGroupId())) {
             throw new CustomException("지원서를 심사할 권한이 없습니다");
         }
-        
+
         application.setStatus(dto.getStatus());
         application.setReviewer(reviewer);
         application.setReviewNote(dto.getMemo());
         application.setDecidedAt(LocalDateTime.now());
-        
+
         // 승인시 자동으로 그룹 멤버로 추가
         if (dto.getStatus() == ApplicationStatus.ACCEPTED) {
             GroupMember member = GroupMember.builder()
@@ -104,8 +108,24 @@ public class ApplicationService {
                     .status("active")
                     .build();
             groupMemberRepository.save(member);
+
+            // 지원 승인 알림
+            notificationService.createNotification(
+                    application.getApplicant(),
+                    "지원이 승인되었습니다! " + application.getGroup().getGroupName() + "의 멤버가 되었습니다.",
+                    "/groups/" + application.getGroup().getGroupId()
+            );
         }
-        
+
+        // 지원 거절 알림
+        if (dto.getStatus() == ApplicationStatus.REJECTED) {
+            notificationService.createNotification(
+                    application.getApplicant(),
+                    "지원이 거절되었습니다.",
+                    null
+            );
+        }
+
         return ApplicationResponseDto.from(application);
     }
     
@@ -151,20 +171,4 @@ public class ApplicationService {
         }
     }
     
-    private boolean isGroupAdmin(User user, Long groupId) {
-        // 그룹 리더인지 확인
-        Group group = groupRepository.findById(groupId).orElse(null);
-        if (group != null && group.getLeader() != null && 
-            group.getLeader().getUserId().equals(user.getUserId())) {
-            return true;
-        }
-        
-        // 그룹 멤버 권한 확인
-        return groupMemberRepository.findByUserUserIdAndGroupGroupId(user.getUserId(), groupId)
-                .map(member -> {
-                    String role = member.getRole();
-                    return "회장".equals(role) || "부회장".equals(role) || "관리자".equals(role);
-                })
-                .orElse(false);
-    }
 }

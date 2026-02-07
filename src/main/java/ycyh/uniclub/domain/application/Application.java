@@ -1,5 +1,6 @@
 package ycyh.uniclub.domain.application;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import ycyh.uniclub.domain.recruitment.Recruitment;
@@ -22,10 +23,12 @@ public class Application {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recruitment_id", nullable = false)
+    @JsonIgnore
     private Recruitment recruitment;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
+    @JsonIgnore
     private Group group;
     
     @ManyToOne(fetch = FetchType.LAZY)

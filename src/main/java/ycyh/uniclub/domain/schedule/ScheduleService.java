@@ -8,7 +8,9 @@ import ycyh.uniclub.domain.group.Group;
 import ycyh.uniclub.domain.group.GroupRepository;
 import ycyh.uniclub.domain.user.User;
 
-import java.nio.file.AccessDeniedException;
+import org.springframework.http.HttpStatus;
+import ycyh.uniclub.global.exception.CustomException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -145,11 +147,7 @@ public class ScheduleService {
      */
     private void validateScheduleOwner(Schedule schedule, User user) {
         if (!schedule.getCreatedBy().getUserId().equals(user.getUserId())) {
-            try {
-                throw new AccessDeniedException("일정에 대한 권한이 없습니다.");
-            } catch (AccessDeniedException e) {
-                throw new RuntimeException(e);
-            }
+            throw new CustomException("일정에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
     }
 
