@@ -52,13 +52,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts", "/api/boards/{boardId}/posts/{postId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts/{postId}/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        // Swagger
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "swagger-ui.html").permitAll()
                         // All other requests require authentication (including /api/notifications/**)
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authenticationProvider(daoAuthenticationProvider())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-                               UsernamePasswordAuthenticationFilter.class);
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
