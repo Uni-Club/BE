@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.club.Club;
 import ycyh.uniclub.domain.user.User;
 
 import java.time.LocalDateTime;
@@ -29,9 +29,9 @@ public class Post {
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "club_id", nullable = false)
     @JsonIgnore
-    private Group group;
+    private Club club;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)

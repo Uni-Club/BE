@@ -3,7 +3,7 @@ package ycyh.uniclub.domain.board;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.club.Club;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,9 +22,9 @@ public class Board {
     private Long boardId;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "club_id", nullable = false)
     @JsonIgnore
-    private Group group;
+    private Club club;
     
     @Column(nullable = false, length = 100)
     private String name;
@@ -37,7 +37,7 @@ public class Board {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     @Builder.Default
-    private PostVisibility visibility = PostVisibility.GROUP_ONLY;
+    private PostVisibility visibility = PostVisibility.CLUB_ONLY;
     
     @Column(name = "created_at")
     @Builder.Default

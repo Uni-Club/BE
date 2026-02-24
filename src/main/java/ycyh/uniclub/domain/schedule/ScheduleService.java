@@ -4,10 +4,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ycyh.uniclub.domain.group.Group;
-import ycyh.uniclub.domain.group.GroupMember;
-import ycyh.uniclub.domain.group.GroupMemberRepository;
-import ycyh.uniclub.domain.group.GroupRepository;
+import ycyh.uniclub.domain.club.Club;
+import ycyh.uniclub.domain.club.ClubMember;
+import ycyh.uniclub.domain.club.ClubMemberRepository;
+import ycyh.uniclub.domain.club.ClubRepository;
 import ycyh.uniclub.domain.notification.NotificationService;
 import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.user.User;
@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
-    private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
+    private final ClubRepository clubRepository;
+    private final ClubMemberRepository clubMemberRepository;
     private final NotificationService notificationService;
 
     // 일정 생성
@@ -34,11 +34,11 @@ public class ScheduleService {
 
         validateTimeRange(req.getStartAt(), req.getEndAt());
 
-        Group group = groupRepository.findById(req.getGroupId())
-                .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + req.getGroupId()));
+        Club club = clubRepository.findById(req.getClubId())
+                .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + req.getClubId()));
 
         Schedule schedule = Schedule.builder()
-                .group(group)
+                .club(club)
                 .title(req.getTitle())
                 .description(req.getDescription())
                 .startAt(req.getStartAt())
@@ -50,23 +50,23 @@ public class ScheduleService {
         Schedule saved = scheduleRepository.save(schedule);
 
         // 알림 트리거: 멤버들에게 일정 생성 알림
-        String content = String.format("'%s' 동아리에 새 일정이 등록되었습니다: %s", group.getGroupName(), saved.getTitle());
-        String relatedUrl = String.format("/api/groups/%d/schedules/%d", group.getGroupId(), saved.getScheduleId()); // 라우팅에 맞게 조정
-        notifyGroupMembers(group.getGroupId(), NotificationType.SCHEDULE_CREATED, content, relatedUrl);
+        String content = String.format("'%s' 동아리에 새 일정이 등록되었습니다: %s", club.getClubName(), saved.getTitle());
+        String relatedUrl = String.format("/api/clubs/%d/schedules/%d", club.getClubId(), saved.getScheduleId()); // 라우팅에 맞게 조정
+        notifyClubMembers(club.getClubId(), NotificationType.SCHEDULE_CREATED, content, relatedUrl);
 
         return toResponse(saved);
     }
 
     // 그룹별 일정 목록 조회
     @Transactional(readOnly = true)
-    public List<ScheduleResponseDto> getSchedulesByGroup(Long groupId) {
+    public List<ScheduleResponseDto> getSchedulesByClub(Long clubId) {
 
         // 그룹이 실제로 존재하는지 검증
-        groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + groupId));
+        clubRepository.findById(clubId)
+                .orElseThrow(() -> new EntityNotFoundException("그룹을 찾을 수 없습니다. id=" + clubId));
 
         List<Schedule> schedules = scheduleRepository
-                .findByGroup_GroupIdOrderByStartAtAsc(groupId);
+                .findByClub_ClubIdOrderByStartAtAsc(clubId);
 
         return schedules.stream()
                 .map(this::toResponse)
@@ -75,13 +75,13 @@ public class ScheduleService {
 
     // 특정 일정 상세 조회
     @Transactional(readOnly = true)
-    public ScheduleResponseDto getScheduleDetail(Long groupId, Long scheduleId) {
+    public ScheduleResponseDto getScheduleDetail(Long clubId, Long scheduleId) {
 
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
 
-        // URL의 groupId와 실제 일정의 groupId가 일치하는지 검증
-        if (!schedule.getGroup().getGroupId().equals(groupId)) {
+        // URL의 clubId와 실제 일정의 clubId가 일치하는지 검증
+        if (!schedule.getClub().getClubId().equals(clubId)) {
             throw new IllegalArgumentException("해당 그룹에 속한 일정이 아닙니다.");
         }
 
@@ -89,12 +89,12 @@ public class ScheduleService {
     }
 
     // 일정 수정
-    public ScheduleResponseDto updateSchedule(Long groupId,
+    public ScheduleResponseDto updateSchedule(Long clubId,
                                               Long scheduleId,
                                               ScheduleUpdateDto req,
                                               User user) {
 
-        Schedule schedule = validateAndGetSchedule(groupId, scheduleId);
+        Schedule schedule = validateAndGetSchedule(clubId, scheduleId);
 
         validateScheduleOwner(schedule, user);
         validateTimeRange(req.getStartAt(), req.getEndAt());
@@ -109,35 +109,35 @@ public class ScheduleService {
 
         // 알림 트리거: 멤버들에게 일정 변경 알림
         String afterTitle = schedule.getTitle();
-        String content = String.format("'%s' 동아리 일정이 변경되었습니다: %s", schedule.getGroup().getGroupName(), afterTitle);
-        String relatedUrl = String.format("/api/groups/%d/schedules/%d", groupId, scheduleId);
-        notifyGroupMembers(groupId, NotificationType.SCHEDULE_UPDATED, content, relatedUrl);
+        String content = String.format("'%s' 동아리 일정이 변경되었습니다: %s", schedule.getClub().getClubName(), afterTitle);
+        String relatedUrl = String.format("/api/clubs/%d/schedules/%d", clubId, scheduleId);
+        notifyClubMembers(clubId, NotificationType.SCHEDULE_UPDATED, content, relatedUrl);
 
         return toResponse(schedule);
     }
 
     // 일정 삭제
-    public void deleteSchedule(Long groupId, Long scheduleId, User user) {
+    public void deleteSchedule(Long clubId, Long scheduleId, User user) {
 
-        Schedule schedule = validateAndGetSchedule(groupId, scheduleId);
+        Schedule schedule = validateAndGetSchedule(clubId, scheduleId);
 
         validateScheduleOwner(schedule, user);
 
         String title = schedule.getTitle();
-        String groupName = schedule.getGroup().getGroupName();
+        String clubName = schedule.getClub().getClubName();
 
         scheduleRepository.delete(schedule);
 
         // 알림 트리거: 멤버들에게 일정 취소 알림
-        String content = String.format("'%s' 동아리 일정이 취소되었습니다: %s", groupName, title);
-        String relatedUrl = String.format("/api/groups/%d/schedules", groupId);
-        notifyGroupMembers(groupId, NotificationType.SCHEDULE_DELETED, content, relatedUrl);
+        String content = String.format("'%s' 동아리 일정이 취소되었습니다: %s", clubName, title);
+        String relatedUrl = String.format("/api/clubs/%d/schedules", clubId);
+        notifyClubMembers(clubId, NotificationType.SCHEDULE_DELETED, content, relatedUrl);
     }
 
     private ScheduleResponseDto toResponse(Schedule schedule) {
         return ScheduleResponseDto.builder()
                 .scheduleId(schedule.getScheduleId())
-                .groupId(schedule.getGroup().getGroupId())
+                .clubId(schedule.getClub().getClubId())
                 .title(schedule.getTitle())
                 .description(schedule.getDescription())
                 .startAt(schedule.getStartAt())
@@ -155,12 +155,12 @@ public class ScheduleService {
     /**
      * 일정 검증 & 조회 메서드
      */
-    private Schedule validateAndGetSchedule(Long groupId, Long scheduleId) {
+    private Schedule validateAndGetSchedule(Long clubId, Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("일정을 찾을 수 없습니다. id=" + scheduleId));
 
-        if (!schedule.getGroup().getGroupId().equals(groupId)) {
+        if (!schedule.getClub().getClubId().equals(clubId)) {
             throw new IllegalArgumentException("해당 그룹에 속한 일정이 아닙니다.");
         }
 
@@ -188,10 +188,10 @@ public class ScheduleService {
     /**
      * 알림 트리거 공통 메서드
      */
-    private void notifyGroupMembers(Long groupId, NotificationType type, String content, String relatedUrl) {
-        List<GroupMember> members = groupMemberRepository.findByGroupGroupId(groupId);
+    private void notifyClubMembers(Long clubId, NotificationType type, String content, String relatedUrl) {
+        List<ClubMember> members = clubMemberRepository.findByClubClubId(clubId);
 
-        for (GroupMember member : members) {
+        for (ClubMember member : members) {
             User receiver = member.getUser();
             notificationService.create(receiver, type, content, relatedUrl);
         }
@@ -199,7 +199,7 @@ public class ScheduleService {
 
     // ============= FE 호환용 메서드 (scheduleId만으로 동작) =============
 
-    // 일정 생성 (groupId를 body에서 받음)
+    // 일정 생성 (clubId를 body에서 받음)
     public ScheduleResponseDto createScheduleSimple(ScheduleCreateDto req, User creator) {
         return createSchedule(req, creator);
     }

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class ScheduleResponseDto { // 일정 응답 DTO
 
     private Long scheduleId;
-    private Long groupId;
+    private Long clubId;
     private String title;
     private String description;
     private LocalDateTime startAt;

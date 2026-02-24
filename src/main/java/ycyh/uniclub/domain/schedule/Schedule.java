@@ -3,7 +3,7 @@ package ycyh.uniclub.domain.schedule;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.club.Club;
 import ycyh.uniclub.domain.user.User;
 
 import java.time.LocalDateTime;
@@ -20,9 +20,9 @@ public class Schedule {
     private Long scheduleId;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "club_id", nullable = false)
     @JsonIgnore
-    private Group group;
+    private Club club;
     
     @Column(nullable = false, length = 200)
     private String title;
@@ -47,14 +47,14 @@ public class Schedule {
     private User createdBy;
 
     @Builder
-    private Schedule(Group group,
+    private Schedule(Club club,
                      String title,
                      String description,
                      LocalDateTime startAt,
                      LocalDateTime endAt,
                      String location,
                      User createdBy) {
-        this.group = group;
+        this.club = club;
         this.title = title;
         this.description = description;
         this.startAt = startAt;

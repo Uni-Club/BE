@@ -44,9 +44,9 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Public GET endpoints only
                         .requestMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/groups", "/api/groups/{groupId}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/groups/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/groups/{groupId}/members").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clubs", "/api/clubs/{clubId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clubs/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clubs/{clubId}/members").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recruitments", "/api/recruitments/{recruitmentId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/boards/{boardId}/posts", "/api/boards/{boardId}/posts/{postId}").permitAll()

@@ -9,5 +9,5 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     // 특정 그룹의 모든 일정을 날짜 오름차순으로 조회
-    List<Schedule> findByGroup_GroupIdOrderByStartAtAsc(Long groupId);
+    List<Schedule> findByClub_ClubIdOrderByStartAtAsc(Long clubId);
 }

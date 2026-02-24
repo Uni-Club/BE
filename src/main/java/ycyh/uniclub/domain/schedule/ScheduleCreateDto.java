@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class ScheduleCreateDto { // 일정 생성 요청 DTO
 
-    private Long groupId;
+    private Long clubId;
 
     @NotBlank
     private String title;

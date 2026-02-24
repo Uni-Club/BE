@@ -7,7 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ycyh.uniclub.domain.school.School;
-import ycyh.uniclub.domain.group.GroupMember;
+import ycyh.uniclub.domain.club.ClubMember;
 import ycyh.uniclub.domain.application.Application;
 
 import java.time.LocalDateTime;
@@ -54,7 +54,7 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     @JsonIgnore
-    private List<GroupMember> groupMembers = new ArrayList<>();
+    private List<ClubMember> clubMembers = new ArrayList<>();
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL)
     @Builder.Default

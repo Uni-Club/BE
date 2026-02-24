@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @Builder
 public class LeaveRequestDto {
     private Long requestId;
-    private Long groupId;
-    private String groupName;
+    private Long clubId;
+    private String clubName;
     private Long userId;
     private String userName;
     private String userEmail;
@@ -24,8 +24,8 @@ public class LeaveRequestDto {
     public static LeaveRequestDto from(LeaveRequest entity) {
         return LeaveRequestDto.builder()
                 .requestId(entity.getRequestId())
-                .groupId(entity.getGroup().getGroupId())
-                .groupName(entity.getGroup().getGroupName())
+                .clubId(entity.getClub().getClubId())
+                .clubName(entity.getClub().getClubName())
                 .userId(entity.getUser().getUserId())
                 .userName(entity.getUser().getName())
                 .userEmail(entity.getUser().getEmail())

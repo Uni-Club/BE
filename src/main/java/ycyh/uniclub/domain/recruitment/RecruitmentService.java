@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ycyh.uniclub.domain.group.Group;
-import ycyh.uniclub.domain.group.GroupAuthorizationService;
-import ycyh.uniclub.domain.group.GroupRepository;
-import ycyh.uniclub.domain.group.GroupMemberRepository;
+import ycyh.uniclub.domain.club.Club;
+import ycyh.uniclub.domain.club.ClubAuthorizationService;
+import ycyh.uniclub.domain.club.ClubRepository;
+import ycyh.uniclub.domain.club.ClubMemberRepository;
 import ycyh.uniclub.domain.user.User;
 import ycyh.uniclub.global.exception.CustomException;
 
@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class RecruitmentService {
     private final RecruitmentRepository recruitmentRepository;
-    private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final GroupAuthorizationService groupAuthorizationService;
+    private final ClubRepository clubRepository;
+    private final ClubMemberRepository clubMemberRepository;
+    private final ClubAuthorizationService clubAuthorizationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<RecruitmentResponseDto> getByGroup(Long groupId) {
-        return recruitmentRepository.findByGroupGroupId(groupId)
+    public List<RecruitmentResponseDto> getByClub(Long clubId) {
+        return recruitmentRepository.findByClubClubId(clubId)
                 .stream()
                 .map(RecruitmentResponseDto::from)
                 .collect(Collectors.toList());
@@ -44,17 +44,17 @@ public class RecruitmentService {
     
     @Transactional
     public RecruitmentResponseDto create(RecruitmentCreateDto dto, User user) {
-        Group group = groupRepository.findById(dto.getGroupId())
+        Club club = clubRepository.findById(dto.getClubId())
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
         
         // 권한 체크: 그룹 리더 또는 관리자만 모집공고 생성 가능
-        if (!groupAuthorizationService.isGroupAdmin(user, group)) {
+        if (!clubAuthorizationService.isClubAdmin(user, club)) {
             throw new CustomException("모집공고를 생성할 권한이 없습니다");
         }
         
         Recruitment recruitment = Recruitment.builder()
-                .group(group)
-                .school(group.getSchool())
+                .club(club)
+                .school(club.getSchool())
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .category(dto.getCategory())
@@ -81,7 +81,7 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
         
         // 권한 체크: 그룹 리더 또는 관리자만 상태 변경 가능
-        if (!groupAuthorizationService.isGroupAdmin(user, recruitment.getGroup())) {
+        if (!clubAuthorizationService.isClubAdmin(user, recruitment.getClub())) {
             throw new CustomException("모집공고 상태를 변경할 권한이 없습니다");
         }
         
@@ -103,7 +103,7 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(user, recruitment.getGroup())) {
+        if (!clubAuthorizationService.isClubAdmin(user, recruitment.getClub())) {
             throw new CustomException("모집공고를 수정할 권한이 없습니다");
         }
         
@@ -126,7 +126,7 @@ public class RecruitmentService {
                 .orElseThrow(() -> new CustomException("모집공고를 찾을 수 없습니다"));
         
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(user, recruitment.getGroup())) {
+        if (!clubAuthorizationService.isClubAdmin(user, recruitment.getClub())) {
             throw new CustomException("모집공고를 삭제할 권한이 없습니다");
         }
         
