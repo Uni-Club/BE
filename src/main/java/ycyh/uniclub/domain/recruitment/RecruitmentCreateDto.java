@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class RecruitmentCreateDto {
-    private Long groupId;
+    private Long clubId;
     private String title;
     private String content;
     private String category;

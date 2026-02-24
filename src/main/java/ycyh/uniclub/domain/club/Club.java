@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -15,18 +15,18 @@ import java.util.List;
 
 @Entity
 @Getter
-@Table(name = "groups")
+@Table(name = "club")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Group {
+public class Club {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "group_id")
-    private Long groupId;
+    @Column(name = "club_id")
+    private Long clubId;
     
-    @Column(name = "group_name", nullable = false, length = 100)
-    private String groupName;
+    @Column(name = "club_name", nullable = false, length = 100)
+    private String clubName;
     
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -43,22 +43,22 @@ public class Group {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
     @Builder.Default
     @JsonIgnore
-    private List<GroupMember> members = new ArrayList<>();
+    private List<ClubMember> members = new ArrayList<>();
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
     @Builder.Default
     @JsonIgnore
     private List<Recruitment> recruitments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
     @Builder.Default
     @JsonIgnore
     private List<Board> boards = new ArrayList<>();
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
     @Builder.Default
     @JsonIgnore
     private List<Schedule> schedules = new ArrayList<>();
@@ -73,9 +73,9 @@ public class Group {
     }
 
     // Update mutable fields in-place to preserve collection relationships
-    public void updateInfo(String groupName, String description) {
-        if (groupName != null) {
-            this.groupName = groupName;
+    public void updateInfo(String clubName, String description) {
+        if (clubName != null) {
+            this.clubName = clubName;
         }
         if (description != null) {
             this.description = description;

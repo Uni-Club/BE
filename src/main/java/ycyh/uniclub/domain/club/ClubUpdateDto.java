@@ -1,11 +1,11 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class GroupUpdateDto {
-    private String groupName;
+public class ClubUpdateDto {
+    private String clubName;
     private String description;
 }

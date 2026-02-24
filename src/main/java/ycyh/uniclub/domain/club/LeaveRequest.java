@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -23,9 +23,9 @@ public class LeaveRequest {
     private Long requestId;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "club_id", nullable = false)
     @JsonIgnore
-    private Group group;
+    private Club club;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

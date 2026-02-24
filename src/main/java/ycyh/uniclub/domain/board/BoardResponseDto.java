@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class BoardResponseDto {
     private Long boardId;
-    private Long groupId;
+    private Long clubId;
     private String name;
     private String boardType;
     private String visibility;
@@ -19,7 +19,7 @@ public class BoardResponseDto {
     public static BoardResponseDto from(Board board) {
         return BoardResponseDto.builder()
                 .boardId(board.getBoardId())
-                .groupId(board.getGroup().getGroupId())
+                .clubId(board.getClub().getClubId())
                 .name(board.getName())
                 .boardType(board.getBoardType().name())
                 .visibility(board.getVisibility().name())

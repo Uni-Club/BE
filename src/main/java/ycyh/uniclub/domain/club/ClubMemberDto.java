@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class GroupMemberDto {
+public class ClubMemberDto {
     private Long memberId;
     private Long userId;
     private String userName;
@@ -17,8 +17,8 @@ public class GroupMemberDto {
     private Boolean isFinanceAdmin;
     private LocalDateTime joinedAt;
 
-    public static GroupMemberDto from(GroupMember member) {
-        return GroupMemberDto.builder()
+    public static ClubMemberDto from(ClubMember member) {
+        return ClubMemberDto.builder()
                 .memberId(member.getMemberId())
                 .userId(member.getUser().getUserId())
                 .userName(member.getUser().getName())

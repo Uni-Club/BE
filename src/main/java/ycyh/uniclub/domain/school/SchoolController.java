@@ -3,8 +3,8 @@ package ycyh.uniclub.domain.school;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ycyh.uniclub.domain.group.GroupResponseDto;
-import ycyh.uniclub.domain.group.GroupService;
+import ycyh.uniclub.domain.club.ClubResponseDto;
+import ycyh.uniclub.domain.club.ClubService;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SchoolController {
     private final SchoolService schoolService;
-    private final GroupService groupService;
+    private final ClubService clubService;
 
     // 학교 검색 API
     @GetMapping
@@ -50,9 +50,9 @@ public class SchoolController {
     }
 
     // 학교별 동아리 목록 조회 API
-    @GetMapping("/{schoolId}/groups")
-    public ResponseEntity<List<GroupResponseDto>> getGroupsBySchool(@PathVariable Long schoolId) {
-        return ResponseEntity.ok(groupService.getGroupsBySchool(schoolId));
+    @GetMapping("/{schoolId}/clubs")
+    public ResponseEntity<List<ClubResponseDto>> getClubsBySchool(@PathVariable Long schoolId) {
+        return ResponseEntity.ok(clubService.getClubsBySchool(schoolId));
     }
 }
 

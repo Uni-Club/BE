@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ycyh.uniclub.domain.group.GroupAuthorizationService;
+import ycyh.uniclub.domain.club.ClubAuthorizationService;
 import ycyh.uniclub.domain.user.User;
 import ycyh.uniclub.global.exception.CustomException;
 
@@ -19,16 +19,16 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
-    private final GroupAuthorizationService groupAuthorizationService;
+    private final ClubAuthorizationService clubAuthorizationService;
 
     // 특정 게시판의 게시글 목록 조회
     public List<PostResponseDto> getPostsByBoard(Long boardID, User user) {
         Board board = boardRepository.findById(boardID)
                 .orElseThrow(() -> new EntityNotFoundException("게시판을 찾을 수 없습니다. id=" + boardID));
 
-        // GROUP_ONLY 게시판의 경우 멤버만 조회 가능
-        if (board.getVisibility() == PostVisibility.GROUP_ONLY) {
-            if (user == null || !groupAuthorizationService.isGroupMember(user, board.getGroup().getGroupId())) {
+        // CLUB_ONLY 게시판의 경우 멤버만 조회 가능
+        if (board.getVisibility() == PostVisibility.CLUB_ONLY) {
+            if (user == null || !clubAuthorizationService.isClubMember(user, board.getClub().getClubId())) {
                 throw new CustomException("동아리 멤버만 조회할 수 있는 게시판입니다", HttpStatus.FORBIDDEN);
             }
         }
@@ -47,7 +47,7 @@ public class PostService {
 
         Post post = Post.builder()
                 .board(board)
-                .group(board.getGroup())
+                .club(board.getClub())
                 .author(author)
                 .title(req.getTitle())
                 .content(req.getContent())
@@ -152,7 +152,7 @@ public class PostService {
         return PostResponseDto.builder()
                 .postId(post.getPostId())
                 .boardId(post.getBoard().getBoardId())
-                .groupId(post.getGroup().getGroupId())
+                .clubId(post.getClub().getClubId())
                 .authorId(post.getAuthor().getUserId())
                 .authorName(post.getAuthor().getName())
                 .title(post.getTitle())

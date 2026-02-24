@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.auth;
+package ycyh.uni.domain.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

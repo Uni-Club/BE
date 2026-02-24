@@ -11,7 +11,7 @@ import java.util.List;
 public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> {
     List<Recruitment> findByStatus(RecruitmentStatus status);
     
-    List<Recruitment> findByGroupGroupId(Long groupId);
+    List<Recruitment> findByClubClubId(Long clubId);
     
     @Query("SELECT r FROM Recruitment r WHERE " +
            "(:keyword IS NULL OR r.title LIKE %:keyword% OR r.content LIKE %:keyword%) AND " +

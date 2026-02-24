@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.Getter;
 import lombok.Setter;

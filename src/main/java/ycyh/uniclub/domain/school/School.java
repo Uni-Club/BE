@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ycyh.uniclub.domain.user.User;
-import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.club.Club;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class School {
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL)
     @Builder.Default
     @JsonIgnore
-    private List<Group> groups = new ArrayList<>();
+    private List<Club> clubs = new ArrayList<>();
 }
 
 

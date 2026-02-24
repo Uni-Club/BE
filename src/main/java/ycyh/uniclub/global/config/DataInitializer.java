@@ -4,12 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import ycyh.uniclub.domain.board.Board;
-import ycyh.uniclub.domain.board.BoardType;
-import ycyh.uniclub.domain.group.Group;
-import ycyh.uniclub.domain.group.GroupMember;
-import ycyh.uniclub.domain.group.GroupMemberRepository;
-import ycyh.uniclub.domain.group.GroupRepository;
+import ycyh.uniclub.domain.club.Club;
+import ycyh.uniclub.domain.club.ClubMember;
+import ycyh.uniclub.domain.club.ClubMemberRepository;
+import ycyh.uniclub.domain.club.ClubRepository;
 import ycyh.uniclub.domain.recruitment.Recruitment;
 import ycyh.uniclub.domain.recruitment.RecruitmentStatus;
 import ycyh.uniclub.domain.recruitment.RecruitmentRepository;
@@ -19,7 +17,6 @@ import ycyh.uniclub.domain.user.User;
 import ycyh.uniclub.domain.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
@@ -27,8 +24,8 @@ public class DataInitializer implements CommandLineRunner {
     
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
+    private final ClubRepository clubRepository;
+    private final ClubMemberRepository clubMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
     private final PasswordEncoder passwordEncoder;
     
@@ -71,95 +68,95 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
         
         // 그룹 데이터 초기화
-        Group group1 = groupRepository.save(Group.builder()
-                .groupName("GDSC")
+        Club club1 = clubRepository.save(Club.builder()
+                .clubName("GDSC")
                 .description("Google Developer Student Clubs - 구글 개발자 학생 커뮤니티입니다. 웹/앱/AI 등 다양한 기술을 함께 학습하고 프로젝트를 진행합니다.")
                 .leader(user1)
                 .school(university)
                 .build());
         
-        Group group2 = groupRepository.save(Group.builder()
-                .groupName("농구부")
+        Club club2 = clubRepository.save(Club.builder()
+                .clubName("농구부")
                 .description("함께 농구를 즐기며 실력을 향상시키는 동아리입니다. 매주 정기 연습과 친선 경기를 진행합니다.")
                 .leader(user2)
                 .school(university)
                 .build());
         
-        Group group3 = groupRepository.save(Group.builder()
-                .groupName("나눔 봉사단")
+        Club club3 = clubRepository.save(Club.builder()
+                .clubName("나눔 봉사단")
                 .description("지역사회와 함께하는 봉사 동아리입니다. 교육봉사, 환경봉사 등 다양한 활동을 진행합니다.")
                 .leader(user3)
                 .school(university)
                 .build());
         
-        Group group4 = groupRepository.save(Group.builder()
-                .groupName("오케스트라")
+        Club club4 = clubRepository.save(Club.builder()
+                .clubName("오케스트라")
                 .description("클래식 음악을 사랑하는 사람들이 모여 아름다운 하모니를 만들어갑니다.")
                 .leader(user1)
                 .school(university)
                 .build());
         
-        Group group5 = groupRepository.save(Group.builder()
-                .groupName("창업 동아리 STARTUP")
+        Club club5 = clubRepository.save(Club.builder()
+                .clubName("창업 동아리 STARTUP")
                 .description("창업에 관심있는 학생들이 모여 아이디어를 현실로 만들어가는 동아리입니다.")
                 .leader(user2)
                 .school(university)
                 .build());
         
         // 그룹 멤버 추가
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user1)
-                .group(group1)
+                .club(club1)
                 .role("회장")
                 .status("active")
                 .build());
         
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user2)
-                .group(group2)
+                .club(club2)
                 .role("회장")
                 .status("active")
                 .build());
         
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user3)
-                .group(group3)
+                .club(club3)
                 .role("회장")
                 .status("active")
                 .build());
         
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user1)
-                .group(group4)
+                .club(club4)
                 .role("회장")
                 .status("active")
                 .build());
         
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user2)
-                .group(group5)
+                .club(club5)
                 .role("회장")
                 .status("active")
                 .build());
         
         // 추가 멤버 등록
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user2)
-                .group(group1)
+                .club(club1)
                 .role("부원")
                 .status("active")
                 .build());
         
-        groupMemberRepository.save(GroupMember.builder()
+        clubMemberRepository.save(ClubMember.builder()
                 .user(user3)
-                .group(group1)
+                .club(club1)
                 .role("부원")
                 .status("active")
                 .build());
         
         // 모집공고 데이터 초기화
         recruitmentRepository.save(Recruitment.builder()
-                .group(group1)
+                .club(club1)
                 .school(university)
                 .title("2025년 GDSC 신입 멤버 모집")
                 .content("구글 기술에 관심있는 학생 여러분을 환영합니다! 함께 성장하고 배워나갈 열정있는 멤버를 찾습니다.")
@@ -174,7 +171,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
         
         recruitmentRepository.save(Recruitment.builder()
-                .group(group2)
+                .club(club2)
                 .school(university)
                 .title("농구부 신입부원 모집")
                 .content("농구를 좋아하시는 분들 모두 환영합니다! 실력은 상관없습니다. 열정만 있다면 OK!")
@@ -189,7 +186,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
         
         recruitmentRepository.save(Recruitment.builder()
-                .group(group5)
+                .club(club5)
                 .school(university)
                 .title("창업 동아리 STARTUP 팀원 모집")
                 .content("창업에 도전하고 싶은 열정 넘치는 학생을 찾습니다. 함께 꿈을 현실로 만들어봐요!")

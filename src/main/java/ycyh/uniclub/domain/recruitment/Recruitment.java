@@ -3,7 +3,7 @@ package ycyh.uniclub.domain.recruitment;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.club.Club;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.user.User;
 import ycyh.uniclub.domain.application.Application;
@@ -25,8 +25,8 @@ public class Recruitment {
     private Long recruitmentId;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
-    private Group group;
+    @JoinColumn(name = "club_id", nullable = false)
+    private Club club;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")

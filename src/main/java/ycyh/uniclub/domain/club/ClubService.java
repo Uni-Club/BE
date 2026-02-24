@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,78 +18,78 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class GroupService {
-    private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
+public class ClubService {
+    private final ClubRepository clubRepository;
+    private final ClubMemberRepository clubMemberRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
     private final BoardService boardService;
-    private final GroupAuthorizationService groupAuthorizationService;
+    private final ClubAuthorizationService clubAuthorizationService;
     private final NotificationService notificationService;
 
-    public List<GroupResponseDto> searchGroups(GroupSearchDto searchDto) {
-        List<Group> groups = groupRepository.searchGroups(
+    public List<ClubResponseDto> searchClubs(ClubSearchDto searchDto) {
+        List<Club> clubs = clubRepository.searchClubs(
                 searchDto.getKeyword(),
                 searchDto.getSchoolId()
         );
 
-        return groups.stream()
-                .map(GroupResponseDto::from)
+        return clubs.stream()
+                .map(ClubResponseDto::from)
                 .collect(Collectors.toList());
     }
 
-    public GroupResponseDto getGroupDetail(Long groupId) {
-        Group group = groupRepository.findById(groupId)
+    public ClubResponseDto getClubDetail(Long clubId) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
-        return GroupResponseDto.from(group);
+        return ClubResponseDto.from(club);
     }
 
-    public List<GroupResponseDto> getGroupsBySchool(Long schoolId) {
-        List<Group> groups = groupRepository.findBySchoolSchoolId(schoolId);
-        return groups.stream()
-                .map(GroupResponseDto::from)
+    public List<ClubResponseDto> getClubsBySchool(Long schoolId) {
+        List<Club> clubs = clubRepository.findBySchoolSchoolId(schoolId);
+        return clubs.stream()
+                .map(ClubResponseDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public void deleteGroup(Long groupId, User user) {
-        Group group = groupRepository.findById(groupId)
+    public void deleteClub(Long clubId, User user) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 권한 체크: 그룹 리더만 삭제 가능
-        if (group.getLeaderId() == null || !group.getLeaderId().equals(user.getUserId())) {
+        if (club.getLeaderId() == null || !club.getLeaderId().equals(user.getUserId())) {
             throw new CustomException("동아리를 삭제할 권한이 없습니다. 동아리장만 삭제할 수 있습니다.");
         }
 
         // 그룹 삭제 (연관된 데이터도 CASCADE로 삭제됨)
-        groupRepository.delete(group);
+        clubRepository.delete(club);
     }
 
     // 탈퇴 요청 생성
     @Transactional
-    public void requestLeave(Long groupId, User user, String reason) {
-        Group group = groupRepository.findById(groupId)
+    public void requestLeave(Long clubId, User user, String reason) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 그룹 멤버십 확인
-        groupMemberRepository.findByUserUserIdAndGroupGroupId(user.getUserId(), groupId)
+        clubMemberRepository.findByUserUserIdAndClubClubId(user.getUserId(), clubId)
                 .orElseThrow(() -> new CustomException("해당 동아리의 멤버가 아닙니다"));
 
         // 동아리장은 탈퇴 요청할 수 없음
-        if (group.getLeaderId() != null && group.getLeaderId().equals(user.getUserId())) {
+        if (club.getLeaderId() != null && club.getLeaderId().equals(user.getUserId())) {
             throw new CustomException("동아리장은 탈퇴할 수 없습니다. 다른 멤버에게 권한을 위임하거나 동아리를 삭제해주세요.");
         }
 
         // 이미 대기중인 요청이 있는지 확인
-        if (leaveRequestRepository.existsByGroupGroupIdAndUserUserIdAndStatus(groupId, user.getUserId(), LeaveRequestStatus.PENDING)) {
+        if (leaveRequestRepository.existsByClubClubIdAndUserUserIdAndStatus(clubId, user.getUserId(), LeaveRequestStatus.PENDING)) {
             throw new CustomException("이미 탈퇴 요청이 진행중입니다");
         }
 
         // 탈퇴 요청 생성
         LeaveRequest request = LeaveRequest.builder()
-                .group(group)
+                .club(club)
                 .user(user)
                 .reason(reason)
                 .status(LeaveRequestStatus.PENDING)
@@ -98,12 +98,12 @@ public class GroupService {
         leaveRequestRepository.save(request);
 
         // 알림 트리거: 회장(leader)에게 "탈퇴 신청" 알림
-        if (group.getLeaderId() != null) {
-            User leader = userRepository.findById(group.getLeaderId())
+        if (club.getLeaderId() != null) {
+            User leader = userRepository.findById(club.getLeaderId())
                     .orElseThrow(() -> new CustomException("동아리장을 찾을 수 없습니다."));
 
-            String content = String.format("'%s'님이 '%s' 동아리 탈퇴를 신청했습니다.", user.getName(), group.getGroupName());
-            String relatedUrl = String.format("/api/groups/%d/leave-requests", groupId);
+            String content = String.format("'%s'님이 '%s' 동아리 탈퇴를 신청했습니다.", user.getName(), club.getClubName());
+            String relatedUrl = String.format("/api/clubs/%d/leave-requests", clubId);
 
             notificationService.create(leader, NotificationType.LEAVE_REQUESTED, content, relatedUrl);
         }
@@ -115,7 +115,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("탈퇴 요청을 찾을 수 없습니다"));
 
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(reviewer, request.getGroup())) {
+        if (!clubAuthorizationService.isClubAdmin(reviewer, request.getClub())) {
             throw new CustomException("탈퇴 요청을 승인할 권한이 없습니다");
         }
 
@@ -126,12 +126,12 @@ public class GroupService {
         request.setReviewedAt(java.time.LocalDateTime.now());
 
         // 멤버십 삭제
-        GroupMember membership = groupMemberRepository.findByUserUserIdAndGroupGroupId(
-                request.getUser().getUserId(), request.getGroup().getGroupId())
+        ClubMember membership = clubMemberRepository.findByUserUserIdAndClubClubId(
+                request.getUser().getUserId(), request.getClub().getClubId())
                 .orElse(null);
 
         if (membership != null) {
-            groupMemberRepository.delete(membership);
+            clubMemberRepository.delete(membership);
         }
     }
 
@@ -141,7 +141,7 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("탈퇴 요청을 찾을 수 없습니다"));
 
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(reviewer, request.getGroup())) {
+        if (!clubAuthorizationService.isClubAdmin(reviewer, request.getClub())) {
             throw new CustomException("탈퇴 요청을 거절할 권한이 없습니다");
         }
 
@@ -154,12 +154,12 @@ public class GroupService {
 
     // 멤버 삭제
     @Transactional
-    public void removeMember(Long groupId, Long userId, User admin) {
-        Group group = groupRepository.findById(groupId)
+    public void removeMember(Long clubId, Long userId, User admin) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(admin, group)) {
+        if (!clubAuthorizationService.isClubAdmin(admin, club)) {
             throw new CustomException("멤버를 강제 탈퇴시킬 권한이 없습니다");
         }
 
@@ -169,7 +169,7 @@ public class GroupService {
         }
 
         // 동아리장은 강제 탈퇴 불가
-        if (group.getLeaderId().equals(userId)) {
+        if (club.getLeaderId().equals(userId)) {
             throw new CustomException("동아리장을 강제 탈퇴시킬 수 없습니다");
         }
 
@@ -178,110 +178,110 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다."));
 
         // 멤버십 삭제
-        GroupMember membership = groupMemberRepository.findByUserUserIdAndGroupGroupId(userId, groupId)
+        ClubMember membership = clubMemberRepository.findByUserUserIdAndClubClubId(userId, clubId)
                 .orElseThrow(() -> new CustomException("해당 멤버를 찾을 수 없습니다"));
 
-        groupMemberRepository.delete(membership);
+        clubMemberRepository.delete(membership);
 
         // 알림 트리거: 강제 퇴출
-        String content = String.format("'%s' 동아리에서 퇴출되었습니다.", group.getGroupName());
+        String content = String.format("'%s' 동아리에서 퇴출되었습니다.", club.getClubName());
         notificationService.create(userToRemove, NotificationType.MEMBER_KICKED, content, null);
     }
 
-    public List<LeaveRequestDto> getLeaveRequests(Long groupId, User user) {
-        Group group = groupRepository.findById(groupId)
+    public List<LeaveRequestDto> getLeaveRequests(Long clubId, User user) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(user, group)) {
+        if (!clubAuthorizationService.isClubAdmin(user, club)) {
             throw new CustomException("탈퇴 요청을 조회할 권한이 없습니다");
         }
 
-        return leaveRequestRepository.findByGroupGroupIdAndStatus(groupId, LeaveRequestStatus.PENDING)
+        return leaveRequestRepository.findByClubClubIdAndStatus(clubId, LeaveRequestStatus.PENDING)
                 .stream()
                 .map(LeaveRequestDto::from)
                 .collect(Collectors.toList());
     }
 
-    public LeaveRequestDto getMyLeaveRequest(Long groupId, User user) {
-        return leaveRequestRepository.findByGroupGroupIdAndUserUserIdAndStatus(
-                groupId, user.getUserId(), LeaveRequestStatus.PENDING)
+    public LeaveRequestDto getMyLeaveRequest(Long clubId, User user) {
+        return leaveRequestRepository.findByClubClubIdAndUserUserIdAndStatus(
+                clubId, user.getUserId(), LeaveRequestStatus.PENDING)
                 .map(LeaveRequestDto::from)
                 .orElse(null);
     }
 
     // 동아리 생성
     @Transactional
-    public GroupResponseDto createGroup(GroupCreateDto dto, User user) {
+    public ClubResponseDto createClub(ClubCreateDto dto, User user) {
         School school = schoolRepository.findById(dto.getSchoolId())
                 .orElseThrow(() -> new CustomException("학교를 찾을 수 없습니다"));
 
         // 같은 학교에 동일 이름의 동아리가 있는지 확인
-        if (groupRepository.existsByGroupNameAndSchoolSchoolId(dto.getGroupName(), dto.getSchoolId())) {
+        if (clubRepository.existsByClubNameAndSchoolSchoolId(dto.getClubName(), dto.getSchoolId())) {
             throw new CustomException("같은 학교에 동일한 이름의 동아리가 이미 존재합니다");
         }
 
-        Group group = Group.builder()
-                .groupName(dto.getGroupName())
+        Club club = Club.builder()
+                .clubName(dto.getClubName())
                 .description(dto.getDescription())
                 .school(school)
                 .leader(user)
                 .isUnion(dto.getIsUnion() != null ? dto.getIsUnion() : false)
                 .build();
 
-        Group savedGroup = groupRepository.save(group);
+        Club savedClub = clubRepository.save(club);
 
         // 생성자를 회장으로 멤버에 추가
-        GroupMember member = GroupMember.builder()
+        ClubMember member = ClubMember.builder()
                 .user(user)
-                .group(savedGroup)
+                .club(savedClub)
                 .role("회장")
                 .build();
 
         // 그룹 생성시 기본 게시판 자동 생성
-        boardService.createDefaultBoardsforGroup(savedGroup);
+        boardService.createDefaultBoardsforClub(savedClub);
 
-        groupMemberRepository.save(member);
+        clubMemberRepository.save(member);
 
-        return GroupResponseDto.from(savedGroup);
+        return ClubResponseDto.from(savedClub);
     }
 
     // 동아리 수정
     @Transactional
-    public GroupResponseDto updateGroup(Long groupId, GroupUpdateDto dto, User user) {
-        Group group = groupRepository.findById(groupId)
+    public ClubResponseDto updateClub(Long clubId, ClubUpdateDto dto, User user) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 권한 체크: 회장만 수정 가능
-        if (group.getLeaderId() == null || !group.getLeaderId().equals(user.getUserId())) {
+        if (club.getLeaderId() == null || !club.getLeaderId().equals(user.getUserId())) {
             throw new CustomException("동아리를 수정할 권한이 없습니다. 동아리장만 수정할 수 있습니다.");
         }
 
         // Update fields in-place to preserve collection relationships (members, boards, recruitments, schedules)
-        group.updateInfo(dto.getGroupName(), dto.getDescription());
+        club.updateInfo(dto.getClubName(), dto.getDescription());
 
-        return GroupResponseDto.from(group);
+        return ClubResponseDto.from(club);
     }
 
     // 멤버 목록 조회
-    public List<GroupMemberDto> getMembers(Long groupId) {
-        groupRepository.findById(groupId)
+    public List<ClubMemberDto> getMembers(Long clubId) {
+        clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
-        return groupMemberRepository.findByGroupGroupId(groupId)
+        return clubMemberRepository.findByClubClubId(clubId)
                 .stream()
-                .map(GroupMemberDto::from)
+                .map(ClubMemberDto::from)
                 .collect(Collectors.toList());
     }
 
     // 멤버 추가
     @Transactional
-    public GroupMemberDto addMember(Long groupId, GroupMemberAddDto dto, User admin) {
-        Group group = groupRepository.findById(groupId)
+    public ClubMemberDto addMember(Long clubId, ClubMemberAddDto dto, User admin) {
+        Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new CustomException("그룹을 찾을 수 없습니다"));
 
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(admin, group)) {
+        if (!clubAuthorizationService.isClubAdmin(admin, club)) {
             throw new CustomException("멤버를 추가할 권한이 없습니다");
         }
 
@@ -289,39 +289,39 @@ public class GroupService {
                 .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다"));
 
         // 이미 멤버인지 확인
-        if (groupMemberRepository.findByUserUserIdAndGroupGroupId(dto.getUserId(), groupId).isPresent()) {
+        if (clubMemberRepository.findByUserUserIdAndClubClubId(dto.getUserId(), clubId).isPresent()) {
             throw new CustomException("이미 동아리 멤버입니다");
         }
 
-        GroupMember member = GroupMember.builder()
+        ClubMember member = ClubMember.builder()
                 .user(userToAdd)
-                .group(group)
+                .club(club)
                 .role(dto.getRole() != null ? dto.getRole() : "부원")
                 .build();
 
-        GroupMember savedMember = groupMemberRepository.save(member);
+        ClubMember savedMember = clubMemberRepository.save(member);
 
         // 알림 생성 (멤버 승인/추가)
-        String content = String.format("'%s' 동아리 가입이 승인되었습니다.", group.getGroupName());
-        String relatedUrl = String.format("/api/groups/%d", group.getGroupId());
+        String content = String.format("'%s' 동아리 가입이 승인되었습니다.", club.getClubName());
+        String relatedUrl = String.format("/api/clubs/%d", club.getClubId());
         notificationService.create(userToAdd, NotificationType.MEMBER_APPROVED, content, relatedUrl);
 
-        return GroupMemberDto.from(savedMember);
+        return ClubMemberDto.from(savedMember);
     }
 
     // 탈퇴 요청 처리 (승인/거절 통합)
     @Transactional
-    public LeaveRequestDto processLeaveRequest(Long groupId, Long requestId, LeaveRequestReviewDto dto, User reviewer) {
+    public LeaveRequestDto processLeaveRequest(Long clubId, Long requestId, LeaveRequestReviewDto dto, User reviewer) {
         LeaveRequest request = leaveRequestRepository.findById(requestId)
                 .orElseThrow(() -> new CustomException("탈퇴 요청을 찾을 수 없습니다"));
 
-        // groupId 검증
-        if (!request.getGroup().getGroupId().equals(groupId)) {
+        // clubId 검증
+        if (!request.getClub().getClubId().equals(clubId)) {
             throw new CustomException("해당 동아리의 탈퇴 요청이 아닙니다");
         }
 
         // 권한 체크
-        if (!groupAuthorizationService.isGroupAdmin(reviewer, request.getGroup())) {
+        if (!clubAuthorizationService.isClubAdmin(reviewer, request.getClub())) {
             throw new CustomException("탈퇴 요청을 처리할 권한이 없습니다");
         }
 
@@ -335,12 +335,12 @@ public class GroupService {
             request.setStatus(LeaveRequestStatus.APPROVED);
 
             // 멤버십 삭제
-            GroupMember membership = groupMemberRepository.findByUserUserIdAndGroupGroupId(
-                    request.getUser().getUserId(), request.getGroup().getGroupId())
+            ClubMember membership = clubMemberRepository.findByUserUserIdAndClubClubId(
+                    request.getUser().getUserId(), request.getClub().getClubId())
                     .orElse(null);
 
             if (membership != null) {
-                groupMemberRepository.delete(membership);
+                clubMemberRepository.delete(membership);
             }
         } else if ("REJECT".equalsIgnoreCase(action)) {
             request.setStatus(LeaveRequestStatus.REJECTED);
@@ -354,13 +354,13 @@ public class GroupService {
 
         // 알림 트리거: 신청자에게 승인/거절 결과 알림
         User requester = request.getUser();
-        String relatedUrl = String.format("/api/groups/%d", request.getGroup().getGroupId());
+        String relatedUrl = String.format("/api/clubs/%d", request.getClub().getClubId());
 
         if (request.getStatus() == LeaveRequestStatus.APPROVED) {
-            String content = String.format("'%s' 동아리 탈퇴가 승인되었습니다.", request.getGroup().getGroupName());
+            String content = String.format("'%s' 동아리 탈퇴가 승인되었습니다.", request.getClub().getClubName());
             notificationService.create(requester, NotificationType.LEAVE_APPROVED, content, relatedUrl);
         } else if (request.getStatus() == LeaveRequestStatus.REJECTED) {
-            String content = String.format("'%s' 동아리 탈퇴가 거절되었습니다.", request.getGroup().getGroupName());
+            String content = String.format("'%s' 동아리 탈퇴가 거절되었습니다.", request.getClub().getClubName());
             notificationService.create(requester, NotificationType.LEAVE_REJECTED, content, relatedUrl);
         }
 

@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Long> {
-    List<Board> findByGroup_GroupIdOrderByCreatedAtAsc(Long groupId);
-    Optional<Board> findByBoardIdAndGroup_GroupId(Long boardId, Long groupId);
+    List<Board> findByClub_ClubIdOrderByCreatedAtAsc(Long clubId);
+    Optional<Board> findByBoardIdAndClub_ClubId(Long boardId, Long clubId);
 }

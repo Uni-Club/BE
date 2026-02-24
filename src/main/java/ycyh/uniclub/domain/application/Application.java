@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import ycyh.uniclub.domain.recruitment.Recruitment;
-import ycyh.uniclub.domain.group.Group;
+import ycyh.uniclub.domain.club.Club;
 import ycyh.uniclub.domain.user.User;
 
 import java.time.LocalDateTime;
@@ -27,9 +27,9 @@ public class Application {
     private Recruitment recruitment;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "club_id", nullable = false)
     @JsonIgnore
-    private Group group;
+    private Club club;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applicant_id", nullable = false)

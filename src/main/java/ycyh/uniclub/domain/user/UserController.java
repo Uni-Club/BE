@@ -6,9 +6,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ycyh.uniclub.domain.application.ApplicationResponseDto;
 import ycyh.uniclub.domain.application.ApplicationService;
-import ycyh.uniclub.domain.group.GroupMember;
-import ycyh.uniclub.domain.group.GroupMemberRepository;
-import ycyh.uniclub.domain.me.MyGroupDto;
+import ycyh.uniclub.domain.club.ClubMember;
+import ycyh.uniclub.domain.club.ClubMemberRepository;
+import ycyh.uniclub.domain.me.MyClubDto;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final GroupMemberRepository groupMemberRepository;
+    private final ClubMemberRepository clubMemberRepository;
     private final ApplicationService applicationService;
 
     // 내 정보 조회 API
@@ -55,11 +55,11 @@ public class UserController {
     }
 
     // 내 동아리 목록 조회 API
-    @GetMapping("/me/groups")
-    public ResponseEntity<List<MyGroupDto>> getMyGroups(@AuthenticationPrincipal User user) {
-        List<GroupMember> memberships = groupMemberRepository.findByUserUserId(user.getUserId());
-        List<MyGroupDto> result = memberships.stream()
-                .map(MyGroupDto::from)
+    @GetMapping("/me/clubs")
+    public ResponseEntity<List<MyClubDto>> getMyClubs(@AuthenticationPrincipal User user) {
+        List<ClubMember> memberships = clubMemberRepository.findByUserUserId(user.getUserId());
+        List<MyClubDto> result = memberships.stream()
+                .map(MyClubDto::from)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
     }

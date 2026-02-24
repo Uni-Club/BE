@@ -1,7 +1,7 @@
 package ycyh.uniclub.domain.board;
 
 public enum PostVisibility {
-    GROUP_ONLY("group_only"),
+    CLUB_ONLY("club_only"),
     PUBLIC("public");
     
     private final String value;

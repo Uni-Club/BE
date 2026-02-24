@@ -1,12 +1,12 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class GroupCreateDto {
-    private String groupName;
+public class ClubCreateDto {
+    private String clubName;
     private String description;
     private Long schoolId;
     private Boolean isUnion;

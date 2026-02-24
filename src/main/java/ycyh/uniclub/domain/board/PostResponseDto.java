@@ -16,7 +16,7 @@ public class PostResponseDto {
     private Long postId;
 
     private Long boardId;
-    private Long groupId;
+    private Long clubId;
 
     private Long authorId;
     private String authorName;

@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 public class RecruitmentResponseDto {
     private Long recruitmentId;
-    private Long groupId;
+    private Long clubId;
     private Long schoolId;
     private String title;
     private String content;
@@ -31,7 +31,7 @@ public class RecruitmentResponseDto {
     public static RecruitmentResponseDto from(Recruitment entity) {
         return RecruitmentResponseDto.builder()
                 .recruitmentId(entity.getRecruitmentId())
-                .groupId(entity.getGroup() != null ? entity.getGroup().getGroupId() : null)
+                .clubId(entity.getClub() != null ? entity.getClub().getClubId() : null)
                 .schoolId(entity.getSchool() != null ? entity.getSchool().getSchoolId() : null)
                 .title(entity.getTitle())
                 .content(entity.getContent())

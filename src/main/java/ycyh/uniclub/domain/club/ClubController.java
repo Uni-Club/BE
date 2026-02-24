@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/groups")
+@RequestMapping("/api/clubs")
 @RequiredArgsConstructor
-public class GroupController {
-    private final GroupService groupService;
+public class ClubController {
+    private final ClubService clubService;
     private final RecruitmentService recruitmentService;
     private final ApplicationService applicationService;
 
     // 동아리 검색 API
     @GetMapping
-    public ResponseEntity<List<GroupResponseDto>> searchGroups(
+    public ResponseEntity<List<ClubResponseDto>> searchClubs(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long schoolId,
             @RequestParam(required = false) String category,
@@ -36,127 +36,127 @@ public class GroupController {
             }
         }
 
-        GroupSearchDto searchDto = GroupSearchDto.builder()
+        ClubSearchDto searchDto = ClubSearchDto.builder()
                 .keyword(keyword)
                 .schoolId(schoolId)
                 .category(category)
                 .tags(tags)
                 .build();
 
-        return ResponseEntity.ok(groupService.searchGroups(searchDto));
+        return ResponseEntity.ok(clubService.searchClubs(searchDto));
     }
 
     // 동아리 생성 API
     @PostMapping
-    public ResponseEntity<GroupResponseDto> createGroup(
-            @RequestBody GroupCreateDto dto,
+    public ResponseEntity<ClubResponseDto> createClub(
+            @RequestBody ClubCreateDto dto,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(groupService.createGroup(dto, user));
+        return ResponseEntity.ok(clubService.createClub(dto, user));
     }
 
     // 동아리 상세 조회 API
-    @GetMapping("/{groupId}")
-    public ResponseEntity<GroupResponseDto> getGroupDetail(@PathVariable Long groupId) {
-        return ResponseEntity.ok(groupService.getGroupDetail(groupId));
+    @GetMapping("/{clubId}")
+    public ResponseEntity<ClubResponseDto> getClubDetail(@PathVariable Long clubId) {
+        return ResponseEntity.ok(clubService.getClubDetail(clubId));
     }
 
     // 동아리 수정 API
-    @PatchMapping("/{groupId}")
-    public ResponseEntity<GroupResponseDto> updateGroup(
-            @PathVariable Long groupId,
-            @RequestBody GroupUpdateDto dto,
+    @PatchMapping("/{clubId}")
+    public ResponseEntity<ClubResponseDto> updateClub(
+            @PathVariable Long clubId,
+            @RequestBody ClubUpdateDto dto,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(groupService.updateGroup(groupId, dto, user));
+        return ResponseEntity.ok(clubService.updateClub(clubId, dto, user));
     }
 
     // 학교별 동아리 목록 조회 API
     @GetMapping("/school/{schoolId}")
-    public ResponseEntity<List<GroupResponseDto>> getGroupsBySchool(@PathVariable Long schoolId) {
-        return ResponseEntity.ok(groupService.getGroupsBySchool(schoolId));
+    public ResponseEntity<List<ClubResponseDto>> getClubsBySchool(@PathVariable Long schoolId) {
+        return ResponseEntity.ok(clubService.getClubsBySchool(schoolId));
     }
 
     // 동아리 삭제 API
-    @DeleteMapping("/{groupId}")
-    public ResponseEntity<Void> deleteGroup(
-            @PathVariable Long groupId,
+    @DeleteMapping("/{clubId}")
+    public ResponseEntity<Void> deleteClub(
+            @PathVariable Long clubId,
             @AuthenticationPrincipal User user) {
-        groupService.deleteGroup(groupId, user);
+        clubService.deleteClub(clubId, user);
         return ResponseEntity.noContent().build();
     }
 
     // 멤버 목록 조회 API
-    @GetMapping("/{groupId}/members")
-    public ResponseEntity<List<GroupMemberDto>> getMembers(@PathVariable Long groupId) {
-        return ResponseEntity.ok(groupService.getMembers(groupId));
+    @GetMapping("/{clubId}/members")
+    public ResponseEntity<List<ClubMemberDto>> getMembers(@PathVariable Long clubId) {
+        return ResponseEntity.ok(clubService.getMembers(clubId));
     }
 
     // 멤버 추가 API
-    @PostMapping("/{groupId}/members")
-    public ResponseEntity<GroupMemberDto> addMember(
-            @PathVariable Long groupId,
-            @RequestBody GroupMemberAddDto dto,
+    @PostMapping("/{clubId}/members")
+    public ResponseEntity<ClubMemberDto> addMember(
+            @PathVariable Long clubId,
+            @RequestBody ClubMemberAddDto dto,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(groupService.addMember(groupId, dto, user));
+        return ResponseEntity.ok(clubService.addMember(clubId, dto, user));
     }
 
     // 동아리 탈퇴 신청 API
-    @PostMapping("/{groupId}/leave")
+    @PostMapping("/{clubId}/leave")
     public ResponseEntity<Void> requestLeave(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @RequestBody LeaveRequestCreateDto dto,
             @AuthenticationPrincipal User user) {
-        groupService.requestLeave(groupId, user, dto.getReason());
+        clubService.requestLeave(clubId, user, dto.getReason());
         return ResponseEntity.ok().build();
     }
 
     // 동아리 탈퇴 신청 목록 조회 API
-    @GetMapping("/{groupId}/leave-requests")
+    @GetMapping("/{clubId}/leave-requests")
     public ResponseEntity<List<LeaveRequestDto>> getLeaveRequests(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(groupService.getLeaveRequests(groupId, user));
+        return ResponseEntity.ok(clubService.getLeaveRequests(clubId, user));
     }
 
     // 내 탈퇴 신청 조회 API
-    @GetMapping("/{groupId}/my-leave-request")
+    @GetMapping("/{clubId}/my-leave-request")
     public ResponseEntity<LeaveRequestDto> getMyLeaveRequest(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(groupService.getMyLeaveRequest(groupId, user));
+        return ResponseEntity.ok(clubService.getMyLeaveRequest(clubId, user));
     }
 
     // 탈퇴 신청 처리 API (승인/거절)
-    @PatchMapping("/{groupId}/leave-requests/{requestId}")
+    @PatchMapping("/{clubId}/leave-requests/{requestId}")
     public ResponseEntity<LeaveRequestDto> processLeaveRequest(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @PathVariable Long requestId,
             @RequestBody LeaveRequestReviewDto dto,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(groupService.processLeaveRequest(groupId, requestId, dto, user));
+        return ResponseEntity.ok(clubService.processLeaveRequest(clubId, requestId, dto, user));
     }
 
     // 동아리 멤버 삭제 API
-    @DeleteMapping("/{groupId}/members/{userId}")
+    @DeleteMapping("/{clubId}/members/{userId}")
     public ResponseEntity<Void> removeMember(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @PathVariable Long userId,
             @AuthenticationPrincipal User user) {
-        groupService.removeMember(groupId, userId, user);
+        clubService.removeMember(clubId, userId, user);
         return ResponseEntity.noContent().build();
     }
 
     // 동아리별 모집공고 목록 조회 API
-    @GetMapping("/{groupId}/recruitments")
-    public ResponseEntity<List<RecruitmentResponseDto>> getRecruitmentsByGroup(@PathVariable Long groupId) {
-        return ResponseEntity.ok(recruitmentService.getByGroup(groupId));
+    @GetMapping("/{clubId}/recruitments")
+    public ResponseEntity<List<RecruitmentResponseDto>> getRecruitmentsByClub(@PathVariable Long clubId) {
+        return ResponseEntity.ok(recruitmentService.getByClub(clubId));
     }
 
     // 동아리별 지원서 목록 조회 API
-    @GetMapping("/{groupId}/applications")
-    public ResponseEntity<List<ApplicationResponseDto>> getApplicationsByGroup(
-            @PathVariable Long groupId,
+    @GetMapping("/{clubId}/applications")
+    public ResponseEntity<List<ApplicationResponseDto>> getApplicationsByClub(
+            @PathVariable Long clubId,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(applicationService.getByGroup(groupId, user));
+        return ResponseEntity.ok(applicationService.getByClub(clubId, user));
     }
 }
 

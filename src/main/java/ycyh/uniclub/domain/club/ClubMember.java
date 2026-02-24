@@ -1,4 +1,4 @@
-package ycyh.uniclub.domain.group;
+package ycyh.uniclub.domain.club;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -11,13 +11,13 @@ import ycyh.uniclub.domain.user.User;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "group_member", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "group_id"}))
+@Table(name = "club_member",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "club_id"}))
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupMember {
+public class ClubMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
@@ -28,9 +28,9 @@ public class GroupMember {
     private User user;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "club_id", nullable = false)
     @JsonIgnore
-    private Group group;
+    private Club club;
     
     @Column(length = 50)
     @Builder.Default

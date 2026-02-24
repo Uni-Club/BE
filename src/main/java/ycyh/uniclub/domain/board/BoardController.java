@@ -11,7 +11,7 @@ import ycyh.uniclub.domain.user.User;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/groups/{groupId}/boards")
+@RequestMapping("/api/clubs/{clubId}/boards")
 @RequiredArgsConstructor
 public class BoardController {
 
@@ -19,42 +19,42 @@ public class BoardController {
 
     // 그룹별 게시판 목록 조회
     @GetMapping
-    public ResponseEntity<List<BoardResponseDto>> getBoardsByGroup(
-            @PathVariable Long groupId,
+    public ResponseEntity<List<BoardResponseDto>> getBoardsByClub(
+            @PathVariable Long clubId,
             Authentication authentication
     ) {
         User user = null;
         if (authentication != null && authentication.getPrincipal() instanceof User) {
             user = (User) authentication.getPrincipal();
         }
-        return ResponseEntity.ok(boardService.getBoardsByGroup(groupId, user));
+        return ResponseEntity.ok(boardService.getBoardsByClub(clubId, user));
     }
 
     // 게시판 생성
     @PostMapping
     public ResponseEntity<BoardResponseDto> createBoard(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @Valid @RequestBody BoardCreateRequestDto request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createBoard(groupId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createBoard(clubId, request));
     }
 
     // 게시판 상세 조회
     @GetMapping("/{boardId}")
     public ResponseEntity<BoardResponseDto> getBoardDetail(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @PathVariable Long boardId
     ) {
-        return ResponseEntity.ok(boardService.getBoardDetail(groupId, boardId));
+        return ResponseEntity.ok(boardService.getBoardDetail(clubId, boardId));
     }
 
     // 게시판 삭제
     @DeleteMapping("/{boardId}")
     public ResponseEntity<Void> deleteBoard(
-            @PathVariable Long groupId,
+            @PathVariable Long clubId,
             @PathVariable Long boardId
     ) {
-        boardService.deleteBoard(groupId, boardId);
+        boardService.deleteBoard(clubId, boardId);
         return ResponseEntity.noContent().build();
     }
 }

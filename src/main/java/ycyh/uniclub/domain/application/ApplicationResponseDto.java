@@ -15,8 +15,8 @@ public class ApplicationResponseDto {
     private Long applicationId;
     private Long recruitmentId;
     private String recruitmentTitle;
-    private Long groupId;
-    private String groupName;
+    private Long clubId;
+    private String clubName;
     private Long applicantId;
     private String applicantName;
     private String applicantEmail;
@@ -35,8 +35,8 @@ public class ApplicationResponseDto {
                 .applicationId(entity.getApplicationId())
                 .recruitmentId(entity.getRecruitment().getRecruitmentId())
                 .recruitmentTitle(entity.getRecruitment().getTitle())
-                .groupId(entity.getGroup().getGroupId())
-                .groupName(entity.getGroup().getGroupName())
+                .clubId(entity.getClub().getClubId())
+                .clubName(entity.getClub().getClubName())
                 .applicantId(entity.getApplicant().getUserId())
                 .applicantName(entity.getApplicant().getName())
                 .applicantEmail(entity.getApplicant().getEmail())

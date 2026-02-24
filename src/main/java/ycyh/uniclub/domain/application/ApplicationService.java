@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ycyh.uniclub.domain.group.Group;
-import ycyh.uniclub.domain.group.GroupAuthorizationService;
-import ycyh.uniclub.domain.group.GroupMember;
-import ycyh.uniclub.domain.group.GroupMemberRepository;
-import ycyh.uniclub.domain.group.GroupRepository;
+import ycyh.uniclub.domain.club.Club;
+import ycyh.uniclub.domain.club.ClubAuthorizationService;
+import ycyh.uniclub.domain.club.ClubMember;
+import ycyh.uniclub.domain.club.ClubMemberRepository;
+import ycyh.uniclub.domain.club.ClubRepository;
 import ycyh.uniclub.domain.notification.NotificationService;
 import ycyh.uniclub.domain.notification.NotificationType;
 import ycyh.uniclub.domain.recruitment.Recruitment;
@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final RecruitmentRepository recruitmentRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final GroupRepository groupRepository;
-    private final GroupAuthorizationService groupAuthorizationService;
+    private final ClubMemberRepository clubMemberRepository;
+    private final ClubRepository clubRepository;
+    private final ClubAuthorizationService clubAuthorizationService;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -49,7 +49,7 @@ public class ApplicationService {
         // 지원서 생성
         Application application = Application.builder()
                 .recruitment(recruitment)
-                .group(recruitment.getGroup())
+                .club(recruitment.getClub())
                 .applicant(applicant)
                 .motivation(dto.getMotivation())
                 .answers(convertToJson(dto.getAnswers()))
@@ -59,9 +59,9 @@ public class ApplicationService {
         Application saved = applicationRepository.save(application);
 
         // 알림 트리거: 모집공고 지원서 제출
-        Group group = recruitment.getGroup();
-        if (group != null && group.getLeaderId() != null) {
-            User leader = userRepository.findById(group.getLeaderId())
+        Club club = recruitment.getClub();
+        if (club != null && club.getLeaderId() != null) {
+            User leader = userRepository.findById(club.getLeaderId())
                     .orElseThrow(() -> new CustomException("동아리장을 찾을 수 없습니다."));
 
             String content = String.format(
@@ -77,13 +77,13 @@ public class ApplicationService {
         return ApplicationResponseDto.from(saved);
     }
 
-    public List<ApplicationResponseDto> getByGroup(Long groupId, User user) {
+    public List<ApplicationResponseDto> getByClub(Long clubId, User user) {
         // 권한 체크: 그룹 관리자만 지원서 목록 조회 가능
-        if (!groupAuthorizationService.isGroupAdmin(user, groupId)) {
+        if (!clubAuthorizationService.isClubAdmin(user, clubId)) {
             throw new CustomException("지원서 목록을 조회할 권한이 없습니다");
         }
 
-        return applicationRepository.findByGroupGroupId(groupId)
+        return applicationRepository.findByClubClubId(clubId)
                 .stream()
                 .map(ApplicationResponseDto::from)
                 .collect(Collectors.toList());
@@ -95,7 +95,7 @@ public class ApplicationService {
 
         // 권한 체크: 지원자 본인 또는 그룹 관리자만 조회 가능
         boolean isApplicant = application.getApplicant().getUserId().equals(user.getUserId());
-        boolean isAdmin = groupAuthorizationService.isGroupAdmin(user, application.getGroup().getGroupId());
+        boolean isAdmin = clubAuthorizationService.isClubAdmin(user, application.getClub().getClubId());
 
         if (!isApplicant && !isAdmin) {
             throw new CustomException("지원서를 조회할 권한이 없습니다");
@@ -110,7 +110,7 @@ public class ApplicationService {
                 .orElseThrow(() -> new CustomException("지원서를 찾을 수 없습니다"));
 
         // 권한 체크: 그룹 관리자만 심사 가능
-        if (!groupAuthorizationService.isGroupAdmin(reviewer, application.getGroup().getGroupId())) {
+        if (!clubAuthorizationService.isClubAdmin(reviewer, application.getClub().getClubId())) {
             throw new CustomException("지원서를 심사할 권한이 없습니다");
         }
 
@@ -121,17 +121,17 @@ public class ApplicationService {
 
         // 승인시 자동으로 그룹 멤버로 추가
         if (dto.getStatus() == ApplicationStatus.ACCEPTED) {
-            GroupMember member = GroupMember.builder()
+            ClubMember member = ClubMember.builder()
                     .user(application.getApplicant())
-                    .group(application.getGroup())
+                    .club(application.getClub())
                     .role("부원")
                     .status("active")
                     .build();
-            groupMemberRepository.save(member);
+            clubMemberRepository.save(member);
 
             // 지원 승인 알림
-            String content = "지원이 승인되었습니다! " + application.getGroup().getGroupName() + "의 멤버가 되었습니다.";
-            String relatedUrl = "/groups/" + application.getGroup().getGroupId();
+            String content = "지원이 승인되었습니다! " + application.getClub().getClubName() + "의 멤버가 되었습니다.";
+            String relatedUrl = "/clubs/" + application.getClub().getClubId();
             notificationService.create(
                     application.getApplicant(),
                     NotificationType.APPLICATION_ACCEPTED,
