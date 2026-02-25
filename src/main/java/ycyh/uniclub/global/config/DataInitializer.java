@@ -14,6 +14,7 @@ import ycyh.uniclub.domain.recruitment.RecruitmentRepository;
 import ycyh.uniclub.domain.school.School;
 import ycyh.uniclub.domain.school.SchoolRepository;
 import ycyh.uniclub.domain.user.User;
+import ycyh.uniclub.domain.board.BoardService;
 import ycyh.uniclub.domain.user.UserRepository;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ClubRepository clubRepository;
     private final ClubMemberRepository clubMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
+    private final BoardService boardService;
     private final PasswordEncoder passwordEncoder;
     
     @Override
@@ -103,6 +105,13 @@ public class DataInitializer implements CommandLineRunner {
                 .school(university)
                 .build());
         
+        // 기본 게시판 생성
+        boardService.createDefaultBoardsforClub(club1);
+        boardService.createDefaultBoardsforClub(club2);
+        boardService.createDefaultBoardsforClub(club3);
+        boardService.createDefaultBoardsforClub(club4);
+        boardService.createDefaultBoardsforClub(club5);
+
         // 그룹 멤버 추가
         clubMemberRepository.save(ClubMember.builder()
                 .user(user1)
