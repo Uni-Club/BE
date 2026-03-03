@@ -2,6 +2,7 @@ package ycyh.uniclub.domain.auth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +16,7 @@ import ycyh.uniclub.domain.user.*;
 import ycyh.uniclub.global.security.JwtTokenProvider;
 import ycyh.uniclub.global.security.TokenBlacklistService;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -56,6 +58,7 @@ public class AuthController {
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body(Map.of("error", "이메일 또는 비밀번호가 올바르지 않습니다."));
         } catch (Exception e) {
+            log.error("login failed", e);
             return ResponseEntity.status(500).body(Map.of("error", "로그인 처리 중 오류가 발생했습니다."));
         }
     }

@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
         response.put("error", "서버 내부 오류가 발생했습니다");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
 }
 
 
