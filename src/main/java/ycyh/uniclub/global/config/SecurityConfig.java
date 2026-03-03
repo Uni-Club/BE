@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         // Swagger
                         .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "swagger-ui.html").permitAll()
+                        // Actuator
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         // All other requests require authentication (including /api/notifications/**)
                         .anyRequest().authenticated()
                 )

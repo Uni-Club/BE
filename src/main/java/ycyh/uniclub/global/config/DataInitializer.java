@@ -2,6 +2,7 @@ package ycyh.uniclub.global.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import ycyh.uniclub.domain.club.Club;
@@ -19,6 +20,7 @@ import ycyh.uniclub.domain.user.UserRepository;
 
 import java.time.LocalDateTime;
 
+@Profile("local")
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
